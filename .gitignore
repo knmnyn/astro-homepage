@@ -9,6 +9,8 @@ node_modules/
 .pnpm-store/
 pnpm-lock.yaml
 pnpm-workspace.yaml
+src/generated/
+outputs/
 
 # logs
 npm-debug.log*
