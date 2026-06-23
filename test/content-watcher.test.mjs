@@ -1,11 +1,21 @@
+/**
+ * Tests for the Google Sheets content watcher.
+ *
+ * These cases focus on the helper functions that keep the sync pipeline safe
+ * and predictable: config parsing, CSV parsing, cache handling, URL checks,
+ * and small utility helpers used by the watcher runtime.
+ */
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildConditionalHeaders,
   isTrustedCsvUrl,
+  md5,
   normalizeSheetConfig,
   parseCsv,
   parseYamlConfig,
+  readWatcherCache,
   rowsToObjects,
   validateSheetKey,
 } from "../scripts/content-watcher.mjs";
@@ -92,4 +102,22 @@ test("normalizeSheetConfig rejects path traversal and unsafe URLs", () => {
       }),
     /Invalid csv_url/,
   );
+});
+
+test("buildConditionalHeaders mirrors cached validators", () => {
+  assert.deepEqual(buildConditionalHeaders({ etag: '"abc"', last_modified: "Tue, 24 Jun 2026 00:00:00 GMT" }), {
+    "if-none-match": '"abc"',
+    "if-modified-since": "Tue, 24 Jun 2026 00:00:00 GMT",
+  });
+});
+
+test("md5 returns a stable cache key", () => {
+  assert.equal(md5("hello"), md5("hello"));
+  assert.notEqual(md5("hello"), md5("hello!"));
+});
+
+test("readWatcherCache tolerates missing cache files", async () => {
+  const cache = await readWatcherCache();
+  assert.equal(typeof cache, "object");
+  assert.equal(typeof cache.sheets, "object");
 });

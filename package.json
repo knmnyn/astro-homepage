@@ -11,6 +11,8 @@
     "watch:content": "node scripts/content-watcher.mjs",
     "test": "node --test",
     "build": "astro build",
+    "export:static": "node scripts/export-static.mjs",
+    "build:export": "node scripts/build-and-export.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

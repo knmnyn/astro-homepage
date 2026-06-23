@@ -4,27 +4,29 @@ This repository is the Astro build for Min-Yen Kan's personal homepage and its s
 
 The current repo has two parts:
 
-- a stock Astro starter in `src/`
+- an Astro 7 site shell in `src/`
 - a Google Sheets-to-JSON content pipeline in `scripts/` and `content-sources.yml`
 
-The site itself is still being assembled, but the content model and data ingestion flow are already in place.
+The site is now assembled as a single responsive homepage driven by the generated sheet data.
 
 ## Current State
 
 What is here now:
 
-- Astro 7 app scaffold
-- starter layout and placeholder homepage
+- Astro 7 site shell
+- a sheet-driven homepage shell in `src/pages/index.astro`
 - sheet-based content source registry in `content-sources.yml`
 - a watcher/sync script that fetches published Google Sheets CSVs
 - generated JSON written to `src/generated/content-sources/`
+- a static export script for copying the build output to a destination directory
+- a cache-aware build/export wrapper that skips unchanged builds
+- a gitignored HTML pipeline log that can be copied to the serving destination
 - a spreadsheet template for authoring the homepage content
 
 What is not yet finished:
 
-- the real homepage shell
 - section pages like Research, Teaching, Publications, Software, Service, and Personal
-- Astro components wired to the generated sheet data
+- per-section Astro routes wired to the generated sheet data
 
 ## Homepage Design
 
@@ -93,6 +95,77 @@ Generated data is written here:
 
 The generated output is ignored by Git.
 
+### Exporting the Static Site
+
+The export step copies the built `dist/` directory into a destination directory.
+That destination can be a mounted or synced NUS `public_html` path, a local staging folder,
+or any other directory that should receive the static site.
+
+```sh
+npm run build
+npm run export:static -- --dest /path/to/public_html/astro-homepage
+```
+
+You can also combine both steps:
+
+```sh
+npm run build:export -- --dest /path/to/public_html/astro-homepage
+```
+
+If your NUS server storage is mounted locally, point `--dest` at that mounted path. If your workflow uses `public_html` directly on the server, sync the contents there with your preferred file transfer tool after the build.
+
+### Export Script Reference
+
+- Purpose
+  - copy the Astro build output to a destination directory
+- Invocation
+  - `npm run export:static -- --dest /path/to/public_html/astro-homepage`
+  - `npm run build:export -- --dest /path/to/public_html/astro-homepage`
+- Flags
+  - `--source <dir>` sets the source build directory
+  - `--dest <dir>` sets the destination directory
+  - `--clean` removes the destination directory before copying
+  - `--help` prints usage and exits
+- Environment
+  - `EXPORT_SOURCE_DIR` overrides the source directory
+  - `EXPORT_DEST_DIR` overrides the destination directory
+
+### Build Cache Reference
+
+The build/export wrapper hashes the site inputs and skips `astro build` when the inputs are unchanged.
+Cache files live under `.cache/astro-homepage/` and are ignored by Git.
+
+- Purpose
+  - avoid rebuilding when the Astro inputs have not changed
+- Invocation
+  - `npm run build:export -- --dest /path/to/public_html/astro-homepage`
+- Flags
+  - `--force-build` ignores the input hash and rebuilds anyway
+- Inputs covered by the build hash
+  - `src/`
+  - `public/`
+  - `astro.config.mjs`
+  - `content-sources.yml`
+  - `package.json`
+  - `package-lock.json`
+
+### Pipeline Log
+
+Each watcher and export run appends a row to a gitignored HTML log at `.cache/astro-homepage/pipeline-log.html`.
+The export step copies that file into the destination directory as `pipeline-log.html`, so the served site can
+show the latest run history without opening the local cache.
+
+- Appended by
+  - `scripts/content-watcher.mjs`
+  - `scripts/export-static.mjs`
+  - `scripts/build-and-export.mjs`
+- Copied to destination as
+  - `pipeline-log.html`
+- Useful for checking
+  - whether the watcher saw changes or used the cache
+  - whether the export step copied files or skipped because nothing changed
+  - when the pipeline was last refreshed
+
 ### How It Works
 
 1. Publish each Google Sheets tab as CSV.
@@ -135,14 +208,21 @@ Each tab includes example rows based on the homepage content so the sheet is imm
 /
 ├── content-sources.yml
 ├── scripts/
-│   └── content-watcher.mjs
+│   ├── build-and-export.mjs
+│   ├── content-watcher.mjs
+│   └── export-static.mjs
+├── public/
+│   ├── favicon.ico
+│   └── favicon.svg
 ├── src/
-│   ├── assets/
-│   ├── components/
+│   ├── generated/
 │   ├── layouts/
+│   ├── lib/
 │   └── pages/
 ├── test/
-│   └── content-watcher.test.mjs
+│   ├── build-and-export.test.mjs
+│   ├── content-watcher.test.mjs
+│   └── export-static.test.mjs
 └── package.json
 ```
 
@@ -154,6 +234,8 @@ Run these from the project root.
 npm install
 npm run dev
 npm run build
+npm run build:export
+npm run export:static
 npm run preview
 npm run sync:content
 npm run watch:content
@@ -169,23 +251,37 @@ npm test
 - `node scripts/content-watcher.mjs --help`
   - show script usage and flags
 
+### Static Export Commands
+
+- `npm run export:static -- --dest /path/to/public_html/astro-homepage`
+  - copy the built site into a destination directory
+- `npm run build:export -- --dest /path/to/public_html/astro-homepage`
+  - build the site and copy the result in one step
+- `node scripts/export-static.mjs --help`
+  - show export script usage and flags
+
 ## Files Worth Knowing
 
 - [package.json](./package.json)
 - [content-sources.yml](./content-sources.yml)
 - [scripts/content-watcher.mjs](./scripts/content-watcher.mjs)
+- [scripts/build-and-export.mjs](./scripts/build-and-export.mjs)
+- [scripts/export-static.mjs](./scripts/export-static.mjs)
+- [scripts/pipeline-log.mjs](./scripts/pipeline-log.mjs)
 - [test/content-watcher.test.mjs](./test/content-watcher.test.mjs)
+- [test/build-and-export.test.mjs](./test/build-and-export.test.mjs)
+- [test/export-static.test.mjs](./test/export-static.test.mjs)
+- [test/pipeline-log.test.mjs](./test/pipeline-log.test.mjs)
 
 ## Development Notes
 
-- The repo still contains the default Astro starter pages and components.
-- The real homepage will replace the starter content with data-driven components.
-- The sheet pipeline is already ready for that transition.
+- The homepage is now driven by the sheet-generated JSON in `src/generated/content-sources/`.
+- The static export step is intentionally a directory copy so it can target a `public_html` mount or sync destination.
+- The build/export wrapper skips `astro build` when the input hash is unchanged.
+- The remaining work is mostly section routing and continued content refinement.
 
 ## Next Steps
 
-1. Replace the starter homepage with the real profile shell.
-2. Add Astro components for each section type.
-3. Read the generated JSON from `src/generated/content-sources/`.
-4. Render the homepage and subpages from the sheet data.
-5. Add navigation, page metadata, and responsive styling.
+1. Split the homepage sections into standalone Astro pages where useful.
+2. Add an automated deployment step if the NUS server path is mounted consistently.
+3. Keep refining the sheet schema as the site content grows.
