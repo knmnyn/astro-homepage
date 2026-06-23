@@ -1,0 +1,41 @@
+sheets:
+  - key: profile
+    name: Profile
+    gid: 2013930604
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=2013930604&single=true&output=csv
+  - key: nav
+    name: Nav
+    gid: 701628833
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=701628833&single=true&output=csv
+  - key: publications
+    name: Publications
+    gid: 865914459
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=865914459&single=true&output=csv
+  - key: teaching
+    name: Teaching
+    gid: 2072094583
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=2072094583&single=true&output=csv
+  - key: students
+    name: Students
+    gid: 1788634209
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=1788634209&single=true&output=csv
+  - key: talks
+    name: Talks
+    gid: 1203070363
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=1203070363&single=true&output=csv
+  - key: grants
+    name: Grants
+    gid: 803940812
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=803940812&single=true&output=csv
+  - key: software
+    name: Software
+    gid: 553723111
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=553723111&single=true&output=csv
+  - key: service
+    name: Service
+    gid: 1102315975
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=1102315975&single=true&output=csv
+  - key: personal-links
+    name: Personal Links
+    gid: 1689161571
+    csv_url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTkmh8WXYhCDdqHrv1sPxm_MWLl0_QDoc-0XdTji5UiFOO3YEW-Z9CcyMOjEylx5mMnAry2xK6sElZn/pub?gid=1689161571&single=true&output=csv
