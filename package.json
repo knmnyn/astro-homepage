@@ -10,10 +10,10 @@
     "sync:content": "node scripts/content-watcher.mjs --once",
     "watch:content": "node scripts/content-watcher.mjs",
     "test": "node --test",
-    "build": "astro build",
+    "build": "node scripts/astro-command.mjs build",
     "export:static": "node scripts/export-static.mjs",
     "build:export": "node scripts/build-and-export.mjs",
-    "preview": "astro preview",
+    "preview": "node scripts/astro-command.mjs preview",
     "astro": "astro"
   },
   "dependencies": {

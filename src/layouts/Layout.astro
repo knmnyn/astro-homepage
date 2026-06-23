@@ -3,6 +3,8 @@ const {
   title = "Min-Yen Kan",
   description = "Min-Yen Kan's homepage, powered by Astro and Google Sheets content.",
 } = Astro.props;
+
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <!doctype html>
@@ -10,11 +12,65 @@ const {
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
+		<link rel="icon" href={`${baseUrl}favicon.ico`} />
 		<meta name="description" content={description} />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<script is:inline>
+			(() => {
+				const storageKey = "astro-homepage-theme";
+				const root = document.documentElement;
+				const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+				const getStoredChoice = () => {
+					try {
+						const value = window.localStorage.getItem(storageKey);
+						return value === "light" || value === "dark" || value === "auto" ? value : "auto";
+					} catch {
+						return "auto";
+					}
+				};
+
+				const resolveTheme = (choice) =>
+					choice === "auto" ? (media.matches ? "dark" : "light") : choice;
+
+				const applyTheme = (choice) => {
+					const theme = resolveTheme(choice);
+					root.setAttribute("data-theme-mode", choice);
+					root.setAttribute("data-theme", theme);
+					root.style.colorScheme = theme;
+					for (const button of document.querySelectorAll("[data-theme-choice]")) {
+						button.setAttribute("aria-pressed", String(button.dataset.themeChoice === choice));
+					}
+				};
+
+				const storedChoice = getStoredChoice();
+				applyTheme(storedChoice);
+
+				window.addEventListener("DOMContentLoaded", () => {
+					for (const button of document.querySelectorAll("[data-theme-choice]")) {
+						button.addEventListener("click", () => {
+							const choice = button.dataset.themeChoice || "auto";
+							try {
+								window.localStorage.setItem(storageKey, choice);
+							} catch {
+								// Ignore storage failures and keep the interaction functional.
+							}
+							applyTheme(choice);
+						});
+					}
+
+					applyTheme(getStoredChoice());
+				});
+
+				media.addEventListener("change", () => {
+					if (getStoredChoice() === "auto") {
+						applyTheme("auto");
+					}
+				});
+			})();
+		</script>
 	</head>
 	<body>
 		<slot />
@@ -24,17 +80,52 @@ const {
 <style>
 	:root {
 		color-scheme: light;
-		--bg: #f4efe7;
-		--bg-alt: #f9f6f0;
-		--panel: rgba(255, 255, 255, 0.82);
+		--bg: #f3f0ea;
+		--bg-alt: #f8f4ee;
+		--bg-accent: rgba(0, 57, 166, 0.08);
+		--bg-accent-2: rgba(238, 119, 0, 0.08);
+		--panel: rgba(255, 255, 255, 0.84);
 		--panel-strong: #ffffff;
-		--text: #1c232b;
-		--muted: #54606c;
-		--line: rgba(28, 35, 43, 0.12);
-		--accent: #173f5f;
-		--accent-2: #b65a2a;
-		--accent-3: #6c7d54;
-		--shadow: 0 24px 60px rgba(23, 63, 95, 0.08);
+		--panel-contrast: rgba(255, 255, 255, 0.62);
+		--text: #17202a;
+		--muted: #4f5b67;
+		--line: rgba(0, 57, 166, 0.12);
+		--line-strong: rgba(0, 57, 166, 0.18);
+		--accent: #0039a6;
+		--accent-2: #ee7700;
+		--accent-3: #00544c;
+		--accent-soft: rgba(0, 57, 166, 0.1);
+		--accent-soft-strong: rgba(238, 119, 0, 0.14);
+		--shadow: 0 28px 64px rgba(0, 57, 166, 0.08);
+		--shadow-soft: 0 16px 36px rgba(23, 32, 42, 0.08);
+		--control-bg: rgba(255, 255, 255, 0.88);
+		--control-active: #0039a6;
+		--control-active-text: #ffffff;
+	}
+
+	:root[data-theme="dark"] {
+		color-scheme: dark;
+		--bg: #09111d;
+		--bg-alt: #0e1727;
+		--bg-accent: rgba(0, 57, 166, 0.22);
+		--bg-accent-2: rgba(238, 119, 0, 0.16);
+		--panel: rgba(12, 20, 33, 0.82);
+		--panel-strong: rgba(16, 27, 43, 0.95);
+		--panel-contrast: rgba(16, 27, 43, 0.72);
+		--text: #eef4fb;
+		--muted: #aab8c8;
+		--line: rgba(112, 146, 206, 0.18);
+		--line-strong: rgba(112, 146, 206, 0.28);
+		--accent: #8eb4ff;
+		--accent-2: #ffb15e;
+		--accent-3: #7bd8c2;
+		--accent-soft: rgba(142, 180, 255, 0.12);
+		--accent-soft-strong: rgba(255, 177, 94, 0.14);
+		--shadow: 0 28px 64px rgba(1, 8, 18, 0.55);
+		--shadow-soft: 0 16px 40px rgba(1, 8, 18, 0.32);
+		--control-bg: rgba(14, 23, 39, 0.94);
+		--control-active: #8eb4ff;
+		--control-active-text: #08111c;
 	}
 
 	html,
@@ -43,15 +134,29 @@ const {
 		width: 100%;
 		min-height: 100%;
 		background:
-			radial-gradient(circle at top left, rgba(182, 90, 42, 0.14), transparent 28%),
-			radial-gradient(circle at top right, rgba(23, 63, 95, 0.12), transparent 32%),
+			radial-gradient(circle at top left, var(--bg-accent-2), transparent 28%),
+			radial-gradient(circle at top right, var(--bg-accent), transparent 32%),
 			linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
 		color: var(--text);
 		font-family:
-			'IBM Plex Sans', 'Inter', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+			"IBM Plex Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
 	}
 
 	a {
 		color: inherit;
+	}
+
+	button {
+		font: inherit;
+	}
+
+	::selection {
+		background: color-mix(in srgb, var(--accent) 24%, transparent);
+		color: var(--text);
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--accent-2);
+		outline-offset: 3px;
 	}
 </style>

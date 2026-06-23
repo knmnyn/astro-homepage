@@ -104,11 +104,28 @@ const contactItems = [
     </section>
 
     <nav class="section-nav panel" aria-label="Section navigation">
-      {navItems.map((item) => (
-        <a href={`#${item.anchor}`} title={item.notes}>
-          {item.label}
-        </a>
-      ))}
+      <div class="section-nav-links">
+        {navItems.map((item) => (
+          <a href={`#${item.anchor}`} title={item.notes}>
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      <div class="theme-switch" aria-label="Color theme">
+        <span class="theme-switch-label">Theme</span>
+        <div class="theme-switch-group" role="group" aria-label="Color theme mode">
+          <button type="button" class="theme-switch-option" data-theme-choice="auto" aria-pressed="true">
+            Auto
+          </button>
+          <button type="button" class="theme-switch-option" data-theme-choice="light" aria-pressed="false">
+            Light
+          </button>
+          <button type="button" class="theme-switch-option" data-theme-choice="dark" aria-pressed="false">
+            Dark
+          </button>
+        </div>
+      </div>
     </nav>
 
     <section id="research" class="content-grid">
@@ -473,6 +490,7 @@ const contactItems = [
     border: 1px solid var(--line);
     background: var(--panel-strong);
     padding: 1rem 1.05rem;
+    box-shadow: var(--shadow-soft);
   }
 
   .stat-card strong {
@@ -483,26 +501,87 @@ const contactItems = [
   }
 
   .stat-card.accent {
-    background: linear-gradient(135deg, rgba(23, 63, 95, 0.08), rgba(182, 90, 42, 0.08));
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent-soft-strong));
   }
 
   .section-nav {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .section-nav-links {
+    display: flex;
     flex-wrap: wrap;
     gap: 0.65rem;
-    padding: 0.95rem 1rem;
-    border-radius: 22px;
   }
 
   .section-nav a {
     border-radius: 999px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.68);
+    background: var(--control-bg);
     padding: 0.6rem 0.95rem;
     text-decoration: none;
     color: var(--accent);
     font-weight: 700;
     font-size: 0.92rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .theme-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .theme-switch-label {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .theme-switch-group {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--control-bg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .theme-switch-option {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.55rem 0.8rem;
+    min-width: 4.5rem;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .theme-switch-option[aria-pressed="true"] {
+    background: var(--control-active);
+    color: var(--control-active-text);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--control-active) 28%, transparent);
+  }
+
+  .theme-switch-option:hover {
+    transform: translateY(-1px);
   }
 
   .content-grid,
@@ -560,8 +639,8 @@ const contactItems = [
 
   .tag-row span {
     border-radius: 999px;
-    background: rgba(23, 63, 95, 0.08);
-    border: 1px solid rgba(23, 63, 95, 0.1);
+    background: var(--accent-soft);
+    border: 1px solid var(--line-strong);
     padding: 0.4rem 0.7rem;
     font-size: 0.88rem;
   }
@@ -575,8 +654,9 @@ const contactItems = [
   .info-card {
     border-radius: 20px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.72);
+    background: var(--panel-contrast);
     padding: 1rem 1rem 0.95rem;
+    box-shadow: var(--shadow-soft);
   }
 
   .compact {
@@ -615,6 +695,12 @@ const contactItems = [
     text-decoration: none;
   }
 
+  .section-nav a:hover,
+  .inline-link:hover,
+  .action-link:hover {
+    color: var(--accent-2);
+  }
+
   .link-row {
     display: flex;
     flex-wrap: wrap;
@@ -633,6 +719,14 @@ const contactItems = [
     .section-header {
       align-items: start;
       flex-direction: column;
+    }
+
+    .section-nav {
+      align-items: start;
+    }
+
+    .theme-switch {
+      justify-content: flex-start;
     }
   }
 
@@ -655,6 +749,14 @@ const contactItems = [
 
     .hero-actions {
       grid-template-columns: 1fr;
+    }
+
+    .theme-switch-group {
+      width: 100%;
+    }
+
+    .theme-switch-option {
+      flex: 1 1 0;
     }
   }
 </style>

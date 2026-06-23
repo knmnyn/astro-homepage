@@ -5,9 +5,9 @@ This repository is the Astro build for Min-Yen Kan's personal homepage and its s
 The current repo has two parts:
 
 - an Astro 7 site shell in `src/`
-- a Google Sheets-to-JSON content pipeline in `scripts/` and `content-sources.yml`
+- a Google Sheets-to-JSON content pipeline plus export helpers in `scripts/` and `content-sources.yml`
 
-The site is now assembled as a single responsive homepage driven by the generated sheet data.
+The site is now assembled as a single responsive homepage driven by the generated sheet data, with light/dark theme support and an NUS-branded export path.
 
 ## Current State
 
@@ -20,8 +20,10 @@ What is here now:
 - generated JSON written to `src/generated/content-sources/`
 - a static export script for copying the build output to a destination directory
 - a cache-aware build/export wrapper that skips unchanged builds
+- an Astro wrapper for build and preview commands that keeps exported asset URLs correct
 - a gitignored HTML pipeline log that can be copied to the serving destination
 - a spreadsheet template for authoring the homepage content
+- a light/dark/auto theme switch in the shared navigation
 
 What is not yet finished:
 
@@ -66,6 +68,8 @@ The homepage is designed as a classic academic profile site with a clear informa
 - cards or timeline styling for talks, students, and links
 - one shared shell across all pages
 - responsive layout that works on desktop and mobile
+- NUS blue/orange accent colors
+- light and dark theme modes with system-driven auto selection
 
 ### Page Map
 
@@ -94,6 +98,15 @@ Generated data is written here:
 - `src/generated/content-sources/`
 
 The generated output is ignored by Git.
+
+### Local Dev vs Exported Build
+
+This repository intentionally uses two URL modes:
+
+- `npm run dev` serves the site from `/` so local CSS and assets resolve normally.
+- `npm run build` and `npm run preview` use the NUS export base path so copied files work under `~/public_html/astro-homepage/`.
+
+Those build and preview commands are routed through `scripts/astro-command.mjs`, which sets `ASTRO_BASE_PATH=/~kanmy/astro-homepage/` for exported builds.
 
 ### Exporting the Static Site
 
@@ -130,6 +143,21 @@ If your NUS server storage is mounted locally, point `--dest` at that mounted pa
   - `EXPORT_SOURCE_DIR` overrides the source directory
   - `EXPORT_DEST_DIR` overrides the destination directory
 
+### Astro Command Wrapper
+
+- Purpose
+  - run Astro build and preview with the deployed NUS base path
+- Invocation
+  - `npm run build`
+  - `npm run preview`
+  - `node scripts/astro-command.mjs build`
+  - `node scripts/astro-command.mjs preview`
+- Behavior
+  - `npm run dev` stays root-based for localhost work
+  - build and preview set `ASTRO_BASE_PATH=/~kanmy/astro-homepage/`
+- Notes
+  - this keeps local styling working on localhost while still producing deployable URLs for the exported host
+
 ### Build Cache Reference
 
 The build/export wrapper hashes the site inputs and skips `astro build` when the inputs are unchanged.
@@ -165,6 +193,16 @@ show the latest run history without opening the local cache.
   - whether the watcher saw changes or used the cache
   - whether the export step copied files or skipped because nothing changed
   - when the pipeline was last refreshed
+
+### Theme Switch
+
+The shared layout includes a three-state theme control in the navigation bar:
+
+- `Auto`
+- `Light`
+- `Dark`
+
+Theme choice is stored in the browser and applied to the homepage shell. Auto mode follows the user’s system preference.
 
 ### How It Works
 
@@ -208,6 +246,7 @@ Each tab includes example rows based on the homepage content so the sheet is imm
 /
 ├── content-sources.yml
 ├── scripts/
+│   ├── astro-command.mjs
 │   ├── build-and-export.mjs
 │   ├── content-watcher.mjs
 │   └── export-static.mjs
@@ -222,6 +261,7 @@ Each tab includes example rows based on the homepage content so the sheet is imm
 ├── test/
 │   ├── build-and-export.test.mjs
 │   ├── content-watcher.test.mjs
+│   ├── pipeline-log.test.mjs
 │   └── export-static.test.mjs
 └── package.json
 ```
@@ -242,6 +282,11 @@ npm run watch:content
 npm test
 ```
 
+Notes:
+
+- `npm run dev` is the best command for local CSS and theme iteration.
+- `npm run build` and `npm run preview` go through the Astro wrapper so exported URLs keep working.
+
 ### Content Sync Commands
 
 - `npm run sync:content`
@@ -260,10 +305,43 @@ npm test
 - `node scripts/export-static.mjs --help`
   - show export script usage and flags
 
+### Rsync Deployment
+
+If your NUS `public_html` directory is reachable over SSH, you can sync the exported files with `rsync`.
+
+Dry-run first:
+
+```sh
+rsync -avzn --delete outputs/public_html/astro-homepage/ USER@HOST:~/public_html/astro-homepage/
+```
+
+Then run the real copy:
+
+```sh
+rsync -avz --delete outputs/public_html/astro-homepage/ USER@HOST:~/public_html/astro-homepage/
+```
+
+- `-a` preserves file attributes as much as possible
+- `-v` shows what changed
+- `-z` compresses data in transit
+- `-n` is the dry-run flag and should be removed for the real deploy
+- `--delete` removes files on the server that are no longer in the export output
+- the trailing slash on the source path means “copy the contents of this directory”
+
+### Build / Preview Commands
+
+- `npm run build`
+  - build the site with the NUS export base path
+- `npm run preview`
+  - preview the built site with the same export base path
+- `node scripts/astro-command.mjs --help`
+  - show wrapper usage
+
 ## Files Worth Knowing
 
 - [package.json](./package.json)
 - [content-sources.yml](./content-sources.yml)
+- [scripts/astro-command.mjs](./scripts/astro-command.mjs)
 - [scripts/content-watcher.mjs](./scripts/content-watcher.mjs)
 - [scripts/build-and-export.mjs](./scripts/build-and-export.mjs)
 - [scripts/export-static.mjs](./scripts/export-static.mjs)
