@@ -1,11 +1,660 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
+import { siteData } from "../lib/site-data";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const profile = siteData.profile;
+
+const navItems = siteData.navItems
+  .map((item) => ({
+    ...item,
+    anchor:
+      ({
+        misc: "personal",
+        personal: "personal",
+        pt: "personal",
+      }[item.id] ||
+        String(item.path || ""))
+      .replace(/^\//, "")
+      .replace(/\/$/, ""),
+  }))
+  .filter((item) => item.anchor);
+
+const bioLines = String(profile.bio_md || "")
+  .split(/\n+/)
+  .map((line) => line.trim())
+  .filter(Boolean);
+
+const publicationAreas = [...new Set(siteData.publications.map((item) => item.area).filter(Boolean))];
+const featuredPublications = siteData.publications.slice(0, 6);
+const currentTeaching = siteData.teaching.slice(0, 4);
+const featuredStudents = siteData.students.filter((item) => item.status !== "archived").slice(0, 6);
+const featuredTalks = siteData.talks.slice(0, 4);
+const featuredGrants = siteData.grants.slice(0, 4);
+const featuredSoftware = siteData.software.filter((item) => item.featured === "yes" || item.featured === "Yes");
+const featuredService = siteData.service.slice(0, 4);
+const featuredLinks = siteData.personalLinks.filter((item) => item.featured === "yes" || item.featured === "Yes");
+
+const contactItems = [
+  profile.email && { label: "Email", value: profile.email, href: `mailto:${profile.email}` },
+  profile.cv_url && { label: "CV", value: "Curriculum Vitae", href: profile.cv_url },
+  profile.office && { label: "Office", value: profile.office },
+  profile.address && { label: "Address", value: profile.address },
+].filter(Boolean);
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+  title={`${profile.name || "Min-Yen Kan"} | Homepage`}
+  description={`Homepage for ${profile.name || "Min-Yen Kan"}, powered by Astro and Google Sheets content.`}
+>
+  <main class="page-shell">
+    <section class="hero panel">
+      <div class="hero-copy">
+        <p class="eyebrow">Computer Science · Natural Language Processing · Information Retrieval</p>
+        <h1>{profile.name}</h1>
+        <p class="headline">
+          {profile.title}
+          {profile.role ? ` · ${profile.role}` : ""}
+        </p>
+
+        {bioLines.length > 0 && (
+          <div class="bio">
+            {bioLines.map((line) => <p>{line}</p>)}
+          </div>
+        )}
+
+        <div class="hero-actions">
+          {contactItems.map((item) =>
+            item.href ? (
+              <a class="action-link" href={item.href} rel="noreferrer">
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </a>
+            ) : (
+              <div class="action-link static">
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ),
+          )}
+        </div>
+      </div>
+
+      <aside class="hero-aside">
+        <div class="stat-card">
+          <span class="stat-label">Publications</span>
+          <strong>{siteData.publications.length}</strong>
+          <p>Tracked from the publication sheet.</p>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Teaching entries</span>
+          <strong>{siteData.teaching.length}</strong>
+          <p>Recent and historical courses.</p>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Active students</span>
+          <strong>{featuredStudents.length}</strong>
+          <p>Research supervision highlights.</p>
+        </div>
+        <div class="stat-card accent">
+          <span class="stat-label">Research areas</span>
+          <strong>{publicationAreas.length || "—"}</strong>
+          <p>{publicationAreas.join(" · ") || "Areas appear here as the sheet grows."}</p>
+        </div>
+      </aside>
+    </section>
+
+    <nav class="section-nav panel" aria-label="Section navigation">
+      {navItems.map((item) => (
+        <a href={`#${item.anchor}`} title={item.notes}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <section id="research" class="content-grid">
+      <div class="section-intro panel">
+        <p class="section-kicker">Research</p>
+        <h2>What this homepage is organized around</h2>
+        <p>
+          The sheet-driven site keeps the homepage compact while still reflecting the structure
+          of the original website: research-oriented publications, current students, course
+          history, software, service, talks, grants, and personal links.
+        </p>
+        <div class="tag-row">
+          {publicationAreas.map((area) => <span>{area}</span>)}
+        </div>
+      </div>
+
+      <div class="panel list-panel">
+        <p class="section-kicker">Featured publications</p>
+        <div class="stack">
+          {featuredPublications.map((item) => (
+            <article class="list-item">
+              <div class="list-meta">
+                <span>{item.year || "n.d."}</span>
+                {item.type && <span>{item.type}</span>}
+                {item.area && <span>{item.area}</span>}
+              </div>
+              <h3>
+                {item.url ? (
+                  <a href={item.url} rel="noreferrer">
+                    {item.title || "Untitled"}
+                  </a>
+                ) : (
+                  item.title || "Untitled"
+                )}
+              </h3>
+              <p>{item.authors}</p>
+              <p class="muted">
+                {[item.venue, item.pages, item.notes].filter(Boolean).join(" · ")}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="teaching" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Teaching</p>
+          <h2>Courses and facilitation</h2>
+        </div>
+        <p class="section-summary">Latest entries from the teaching sheet.</p>
+      </div>
+      <div class="card-grid">
+        {currentTeaching.map((item) => (
+          <article class="info-card">
+            <p class="card-topline">
+              {item.academicYear || "n.d."}
+              {item.term ? ` · ${item.term}` : ""}
+            </p>
+            <h3>
+              {item.courseCode ? `${item.courseCode} ` : ""}
+              {item.courseTitle || "Course"}
+            </h3>
+            <p>{[item.role, item.level, item.section].filter(Boolean).join(" · ")}</p>
+            {item.notes && <p class="muted">{item.notes}</p>}
+            {item.url && (
+              <a class="inline-link" href={item.url} rel="noreferrer">
+                Course page
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="publications" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Publications</p>
+          <h2>Recent work surfaced from the sheet</h2>
+        </div>
+        <p class="section-summary">A few representative items to keep the homepage readable.</p>
+      </div>
+      <div class="stack">
+        {siteData.publications.slice(0, 10).map((item) => (
+          <article class="list-item compact">
+            <div class="list-meta">
+              <span>{item.year || "n.d."}</span>
+              {item.status && <span>{item.status}</span>}
+            </div>
+            <h3>
+              {item.url ? (
+                <a href={item.url} rel="noreferrer">
+                  {item.title || "Untitled"}
+                </a>
+              ) : (
+                item.title || "Untitled"
+              )}
+            </h3>
+            <p>{item.authors}</p>
+            <p class="muted">
+              {[item.venue, item.pages, item.award].filter(Boolean).join(" · ")}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="dual-grid">
+      <div id="students" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <p class="section-kicker">Students</p>
+            <h2>Current supervision snapshot</h2>
+          </div>
+        </div>
+        <div class="stack">
+          {featuredStudents.map((item) => (
+            <article class="info-card compact">
+              <p class="card-topline">
+                {item.cohort || "n.d."}
+                {item.level ? ` · ${item.level}` : ""}
+              </p>
+              <h3>{item.name}</h3>
+              <p>{[item.role, item.status].filter(Boolean).join(" · ")}</p>
+              {item.interests && <p class="muted">{item.interests}</p>}
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div id="software" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <p class="section-kicker">Software</p>
+            <h2>Featured tools and projects</h2>
+          </div>
+        </div>
+        <div class="stack">
+          {featuredSoftware.map((item) => (
+            <article class="list-item compact">
+              <h3>{item.name}</h3>
+              <p>{item.description}</p>
+              <p class="muted">{item.tags}</p>
+              <div class="link-row">
+                {item.repoUrl && (
+                  <a class="inline-link" href={item.repoUrl} rel="noreferrer">
+                    Repo
+                  </a>
+                )}
+                {item.docsUrl && (
+                  <a class="inline-link" href={item.docsUrl} rel="noreferrer">
+                    Docs
+                  </a>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="tri-grid">
+      <div id="talks" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <p class="section-kicker">Talks</p>
+            <h2>Talk history</h2>
+          </div>
+        </div>
+        <div class="stack">
+          {featuredTalks.map((item) => (
+            <article class="info-card compact">
+              <p class="card-topline">
+                {item.date || item.year || "n.d."}
+                {item.event ? ` · ${item.event}` : ""}
+              </p>
+              <h3>{item.title || "Talk"}</h3>
+              <p>{[item.venue, item.location].filter(Boolean).join(" · ")}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div id="grants" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <p class="section-kicker">Grants</p>
+            <h2>Research support</h2>
+          </div>
+        </div>
+        <div class="stack">
+          {featuredGrants.map((item) => (
+            <article class="info-card compact">
+              <p class="card-topline">
+                {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
+              </p>
+              <h3>{item.title || "Grant"}</h3>
+              <p>{[item.role, item.sponsor].filter(Boolean).join(" · ")}</p>
+              {item.amount && <p class="muted">{`${item.currency || ""} ${item.amount}`.trim()}</p>}
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div id="service" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <p class="section-kicker">Service</p>
+            <h2>Professional and scholarly service</h2>
+          </div>
+        </div>
+        <div class="stack">
+          {featuredService.map((item) => (
+            <article class="list-item compact">
+              <p class="card-topline">
+                {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
+                {item.category ? ` · ${item.category}` : ""}
+              </p>
+              <h3>{[item.role, item.organization].filter(Boolean).join(" · ")}</h3>
+              <p class="muted">{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="personal" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Miscellaneous</p>
+          <h2>Personal links and extras</h2>
+        </div>
+        <p class="section-summary">Shortcuts carried over from the personal page.</p>
+      </div>
+      <div class="card-grid">
+        {featuredLinks.map((item) => (
+          <article class="info-card">
+            <p class="card-topline">{item.category || "link"}</p>
+            <h3>
+              {item.url ? (
+                <a href={item.url} rel="noreferrer">
+                  {item.label || "Link"}
+                </a>
+              ) : (
+                item.label || "Link"
+              )}
+            </h3>
+            <p>{item.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
 </Layout>
+
+<style>
+  .page-shell {
+    width: min(1140px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.9fr);
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 2vw, 2rem);
+    border-radius: 28px;
+  }
+
+  .hero-copy h1 {
+    margin: 0.2rem 0 0;
+    font-size: clamp(2.4rem, 5vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .eyebrow,
+  .section-kicker,
+  .card-topline,
+  .stat-label {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .headline {
+    margin: 0.8rem 0 0;
+    font-size: 1.2rem;
+    color: var(--muted);
+  }
+
+  .bio {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.8rem;
+    max-width: 70ch;
+  }
+
+  .bio p,
+  .section-intro p,
+  .section-summary,
+  .list-item p,
+  .info-card p,
+  .stat-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    margin-top: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .action-link,
+  .action-link.static {
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.68);
+    padding: 0.9rem 1rem;
+    display: grid;
+    gap: 0.15rem;
+    text-decoration: none;
+  }
+
+  .action-link span,
+  .action-link.static span {
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .action-link strong,
+  .action-link.static strong {
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .hero-aside {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .stat-card {
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: var(--panel-strong);
+    padding: 1rem 1.05rem;
+  }
+
+  .stat-card strong {
+    display: block;
+    margin: 0.4rem 0 0.35rem;
+    font-size: 1.7rem;
+    letter-spacing: -0.03em;
+  }
+
+  .stat-card.accent {
+    background: linear-gradient(135deg, rgba(23, 63, 95, 0.08), rgba(182, 90, 42, 0.08));
+  }
+
+  .section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0.95rem 1rem;
+    border-radius: 22px;
+  }
+
+  .section-nav a {
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.68);
+    padding: 0.6rem 0.95rem;
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .content-grid,
+  .dual-grid,
+  .tri-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .content-grid {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  }
+
+  .dual-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tri-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .section-block,
+  .section-intro,
+  .list-panel {
+    border-radius: 26px;
+    padding: 1.25rem;
+  }
+
+  .section-intro {
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+  }
+
+  .section-header h2,
+  .section-intro h2 {
+    margin: 0.3rem 0 0;
+    letter-spacing: -0.03em;
+    font-size: clamp(1.3rem, 2vw, 2rem);
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .tag-row span {
+    border-radius: 999px;
+    background: rgba(23, 63, 95, 0.08);
+    border: 1px solid rgba(23, 63, 95, 0.1);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.88rem;
+  }
+
+  .stack {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .list-item,
+  .info-card {
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.72);
+    padding: 1rem 1rem 0.95rem;
+  }
+
+  .compact {
+    padding: 0.9rem 0.95rem;
+  }
+
+  .list-item h3,
+  .info-card h3 {
+    margin: 0.35rem 0 0.3rem;
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+
+  .list-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .list-meta span + span::before {
+    content: "•";
+    margin-right: 0.45rem;
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .inline-link {
+    display: inline-flex;
+    margin-top: 0.6rem;
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.6rem;
+  }
+
+  @media (max-width: 980px) {
+    .hero,
+    .content-grid,
+    .dual-grid,
+    .tri-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .page-shell {
+      width: min(100% - 1rem, 1140px);
+      padding-top: 1rem;
+    }
+
+    .hero {
+      border-radius: 22px;
+    }
+
+    .section-block,
+    .section-intro,
+    .list-panel {
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .hero-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
