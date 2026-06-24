@@ -70,14 +70,27 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
         </div>
       </div>
 
-      <label class="font-scale" aria-label={fontSizeLabel}>
-        <span class="sr-only">{fontSizeLabel}</span>
-        <select data-font-scale-choice>
-          <option value="80">80%</option>
-          <option value="100" selected>100%</option>
-          <option value="120">120%</option>
-        </select>
-      </label>
+      <div class="font-scale" aria-label={fontSizeLabel}>
+        <button
+          type="button"
+          class="font-scale-button"
+          data-font-scale-adjust="down"
+          aria-label="Decrease text size"
+          title="Decrease text size"
+        >
+          <span aria-hidden="true">−</span>
+        </button>
+        <span class="sr-only" data-font-scale-value aria-live="polite">100%</span>
+        <button
+          type="button"
+          class="font-scale-button"
+          data-font-scale-adjust="up"
+          aria-label="Increase text size"
+          title="Increase text size"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -274,31 +287,58 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
     transform: translateY(-1px);
   }
 
-  .font-scale select {
-    min-width: 4.8rem;
+  .font-scale {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--nav-chip);
     color: var(--muted);
     font: inherit;
     font-weight: 700;
-    padding: 0.35rem 0.55rem;
   }
 
-  .font-scale select:focus-visible {
-    outline-offset: 2px;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
+  .font-scale-button {
     border: 0;
+    border-radius: 0;
+    width: 2rem;
+    height: 1.9rem;
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .font-scale-button:first-child {
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
+  }
+
+  .font-scale-button:last-child {
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+    border-left: 1px solid var(--line);
+  }
+
+  .font-scale-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .font-scale-button:disabled {
+    cursor: default;
+    opacity: 0.42;
   }
 
   @media (max-width: 720px) {
@@ -346,8 +386,5 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
       gap: 0.35rem;
     }
 
-    .font-scale select {
-      min-width: 4.4rem;
-    }
   }
 </style>
