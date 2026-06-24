@@ -1,0 +1,117 @@
+---
+import Layout from "../layouts/Layout.astro";
+import HeroSection from "../components/hero-section.astro";
+import SectionNav from "../components/section-nav.astro";
+import PublicationList from "../components/publication-list.astro";
+import SiteFooter from "../components/site-footer.astro";
+import { siteData } from "../lib/site-data";
+
+const profile = siteData.profile;
+const publicationAreas = [...new Set(siteData.publications.map((item) => item.area).filter(Boolean))];
+const featuredPublications = siteData.publications.slice(0, 8);
+const archivePublications = siteData.publications;
+
+const navItems = [
+  {
+    href: "/",
+    label: "Home",
+    title: "Return to the homepage",
+  },
+  {
+    href: "#featured",
+    label: "Featured",
+    title: "Jump to the highlighted publications",
+  },
+  {
+    href: "#archive",
+    label: "Archive",
+    title: "Browse the full publication list",
+  },
+];
+
+const footerLinks = [
+  {
+    href: "/",
+    label: "Back home",
+    title: "Return to the homepage",
+  },
+];
+---
+
+<Layout
+  title={`${profile.name || "Min-Yen Kan"} | Publications`}
+  description={`Publications archive for ${profile.name || "Min-Yen Kan"}, powered by Astro and Google Sheets content.`}
+>
+  <main class="page-shell">
+    <HeroSection
+      eyebrow="Publications archive"
+      title={profile.name || "Min-Yen Kan"}
+      headline="A complete list of publications from the sheet, with featured items at the top and the full archive below."
+      tags={[
+        `${siteData.publications.length} publications`,
+        `${publicationAreas.length || "No"} areas`,
+        profile.title,
+      ].filter(Boolean)}
+      stats={[
+        {
+          label: "Featured",
+          value: featuredPublications.length,
+          text: "Curated highlights to orient readers quickly.",
+        },
+        {
+          label: "Research areas",
+          value: publicationAreas.length || "—",
+          text: publicationAreas.join(" · ") || "Areas appear here as the sheet grows.",
+          accent: true,
+        },
+      ]}
+    />
+
+    <SectionNav items={navItems} />
+
+    <PublicationList
+      id="featured"
+      title="Featured publications"
+      summary="Representative items from the archive."
+      items={featuredPublications}
+      showExtras={true}
+    />
+
+    <PublicationList
+      id="archive"
+      title="Full publication archive"
+      summary="The complete publication list from the sheet."
+      items={archivePublications}
+      showExtras={true}
+    />
+
+    <SiteFooter links={footerLinks} />
+  </main>
+</Layout>
+
+<style>
+  .page-shell {
+    width: min(1140px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  @media (max-width: 980px) {
+  }
+
+  @media (max-width: 720px) {
+    .page-shell {
+      width: min(100% - 1rem, 1140px);
+      padding-top: 1rem;
+    }
+  }
+</style>

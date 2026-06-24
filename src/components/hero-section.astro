@@ -1,0 +1,201 @@
+---
+const {
+  eyebrow,
+  title,
+  headline,
+  body = [],
+  contacts = [],
+  stats = [],
+  tags = [],
+} = Astro.props;
+---
+
+<section class="hero panel">
+  <div class="hero-copy">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1>{title}</h1>
+    {headline && <p class="headline">{headline}</p>}
+
+    {body.length > 0 && (
+      <div class="body-copy">
+        {body.map((line) => <p>{line}</p>)}
+      </div>
+    )}
+
+    {contacts.length > 0 && (
+      <div class="hero-actions">
+        {contacts.map((item) =>
+          item.href ? (
+            <a class="action-link" href={item.href} rel="noreferrer">
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </a>
+          ) : (
+            <div class="action-link static">
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </div>
+          ),
+        )}
+      </div>
+    )}
+
+    {tags.length > 0 && (
+      <div class="tag-row">
+        {tags.map((tag) => <span>{tag}</span>)}
+      </div>
+    )}
+  </div>
+
+  {stats.length > 0 && (
+    <aside class="hero-aside">
+      {stats.map((stat) => (
+        <div class={`stat-card ${stat.accent ? "accent" : ""}`}>
+          {stat.label && <span class="stat-label">{stat.label}</span>}
+          {stat.value && <strong>{stat.value}</strong>}
+          {stat.text && <p>{stat.text}</p>}
+        </div>
+      ))}
+    </aside>
+  )}
+</section>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.9fr);
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 2vw, 2rem);
+    border-radius: 28px;
+  }
+
+  .hero-copy h1 {
+    margin: 0.2rem 0 0;
+    font-size: clamp(2.4rem, 5vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .eyebrow,
+  .stat-label {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .headline {
+    margin: 0.8rem 0 0;
+    font-size: 1.2rem;
+    color: var(--muted);
+    max-width: 58ch;
+  }
+
+  .body-copy {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.8rem;
+    max-width: 70ch;
+  }
+
+  .body-copy p,
+  .hero-actions span,
+  .hero-actions strong,
+  .tag-row span,
+  .stat-card p {
+    margin: 0;
+  }
+
+  .body-copy p,
+  .stat-card p {
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    margin-top: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .action-link,
+  .action-link.static {
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.68);
+    padding: 0.9rem 1rem;
+    display: grid;
+    gap: 0.15rem;
+    text-decoration: none;
+  }
+
+  .action-link span,
+  .action-link.static span {
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .action-link strong,
+  .action-link.static strong {
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .tag-row {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .tag-row span {
+    border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid var(--line-strong);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.88rem;
+  }
+
+  .hero-aside {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .stat-card {
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: var(--panel-strong);
+    padding: 1rem 1.05rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .stat-card strong {
+    display: block;
+    margin: 0.4rem 0 0.35rem;
+    font-size: 1.7rem;
+    letter-spacing: -0.03em;
+  }
+
+  .stat-card.accent {
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent-soft-strong));
+  }
+
+  @media (max-width: 980px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .hero {
+      border-radius: 22px;
+    }
+
+    .hero-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

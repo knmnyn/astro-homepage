@@ -1,0 +1,78 @@
+---
+const {
+  links = [],
+  note = "Built with Astro and Google Sheets content.",
+  year = new Date().getFullYear(),
+} = Astro.props;
+---
+
+<footer class="site-footer panel">
+  <div class="site-footer-copy">
+    <p class="site-footer-note">{note}</p>
+    <p class="site-footer-meta">© {year} Min-Yen Kan</p>
+  </div>
+
+  {links.length > 0 && (
+    <nav class="site-footer-links" aria-label="Footer links">
+      {links.map((link) => (
+        <a href={link.href} title={link.title}>
+          {link.label}
+        </a>
+      ))}
+    </nav>
+  )}
+</footer>
+
+<style>
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.1rem;
+    border-radius: 22px;
+  }
+
+  .site-footer-copy {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .site-footer-note,
+  .site-footer-meta {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .site-footer-meta {
+    font-size: 0.92rem;
+  }
+
+  .site-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .site-footer-links a {
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--control-bg);
+    padding: 0.6rem 0.95rem;
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .site-footer-links a:hover {
+    color: var(--accent-2);
+  }
+
+  @media (max-width: 720px) {
+    .site-footer {
+      align-items: start;
+    }
+  }
+</style>

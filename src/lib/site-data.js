@@ -56,9 +56,18 @@ function publicationItems() {
     authors: fieldValue(record, "Authors"),
     title: fieldValue(record, "Title"),
     venue: fieldValue(record, "Venue"),
+    volume: fieldValue(record, "Volume"),
+    issue: fieldValue(record, "Issue"),
     pages: fieldValue(record, "Pages"),
+    doi: fieldValue(record, "DOI"),
     url: fieldValue(record, "URL"),
+    pdfUrl: fieldValue(record, "PDF URL"),
+    slidesUrl: fieldValue(record, "Slides URL"),
+    award: fieldValue(record, "Award"),
+    status: fieldValue(record, "Status"),
+    sort: fieldValue(record, "Sort"),
     notes: fieldValue(record, "Notes"),
+    sourceUrl: fieldValue(record, "Source URL"),
   }));
 }
 

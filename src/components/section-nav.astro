@@ -1,0 +1,139 @@
+---
+const {
+  items = [],
+  ariaLabel = "Section navigation",
+  themeLabel = "Color theme",
+  themeGroupLabel = "Color theme mode",
+} = Astro.props;
+---
+
+<nav class="section-nav panel" aria-label={ariaLabel}>
+  <div class="section-nav-links">
+    {items.map((item) => (
+      <a href={item.href} title={item.title}>
+        {item.label}
+      </a>
+    ))}
+  </div>
+
+  <div class="theme-switch" aria-label={themeLabel}>
+    <span class="theme-switch-label">Theme</span>
+    <div class="theme-switch-group" role="group" aria-label={themeGroupLabel}>
+      <button type="button" class="theme-switch-option" data-theme-choice="auto" aria-pressed="true">
+        Auto
+      </button>
+      <button type="button" class="theme-switch-option" data-theme-choice="light" aria-pressed="false">
+        Light
+      </button>
+      <button type="button" class="theme-switch-option" data-theme-choice="dark" aria-pressed="false">
+        Dark
+      </button>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .section-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .section-nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .section-nav a {
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--control-bg);
+    padding: 0.6rem 0.95rem;
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.92rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .theme-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .theme-switch-label {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .theme-switch-group {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--control-bg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .theme-switch-option {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.55rem 0.8rem;
+    min-width: 4.5rem;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .theme-switch-option[aria-pressed="true"] {
+    background: var(--control-active);
+    color: var(--control-active-text);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--control-active) 28%, transparent);
+  }
+
+  .theme-switch-option:hover {
+    transform: translateY(-1px);
+  }
+
+  .section-nav a:hover {
+    color: var(--accent-2);
+  }
+
+  @media (max-width: 980px) {
+    .section-nav {
+      align-items: start;
+    }
+
+    .theme-switch {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .theme-switch-group {
+      width: 100%;
+    }
+
+    .theme-switch-option {
+      flex: 1 1 0;
+    }
+  }
+</style>

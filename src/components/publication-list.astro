@@ -1,0 +1,165 @@
+---
+const {
+  id,
+  title,
+  summary,
+  items = [],
+  showExtras = false,
+  emptyMessage = "No publications are available yet.",
+} = Astro.props;
+
+function joinParts(values, separator = " · ") {
+  return values.filter(Boolean).join(separator);
+}
+
+function formatVolumeIssue(volume, issue) {
+  if (volume && issue) {
+    return `${volume} (${issue})`;
+  }
+
+  return volume || issue || "";
+}
+
+function publicationLinks(item) {
+  return [
+    item.doi && { href: `https://doi.org/${item.doi}`, label: "DOI" },
+    item.pdfUrl && { href: item.pdfUrl, label: "PDF" },
+    item.slidesUrl && { href: item.slidesUrl, label: "Slides" },
+    item.sourceUrl && { href: item.sourceUrl, label: "Source" },
+  ].filter(Boolean);
+}
+---
+
+<section id={id} class="panel section-block publication-list">
+  <div class="section-header">
+    <div>
+      <p class="section-kicker">Publications</p>
+      <h2>{title}</h2>
+    </div>
+    {summary && <p class="section-summary">{summary}</p>}
+  </div>
+
+  {items.length > 0 ? (
+    <div class="stack">
+      {items.map((item) => {
+        const links = publicationLinks(item);
+
+        return (
+          <article class={`publication-card ${showExtras ? "publication-card--full" : "publication-card--compact"}`}>
+            <div class="list-meta">
+              <span>{item.year || "n.d."}</span>
+              {item.type && <span>{item.type}</span>}
+              {item.area && <span>{item.area}</span>}
+              {showExtras && item.status && <span>{item.status}</span>}
+              {showExtras && item.award && <span>{item.award}</span>}
+            </div>
+
+            <h3>
+              {item.url ? (
+                <a href={item.url} rel="noreferrer">
+                  {item.title || "Untitled"}
+                </a>
+              ) : (
+                item.title || "Untitled"
+              )}
+            </h3>
+
+            <p>{item.authors}</p>
+
+            <p class="muted">
+              {joinParts(
+                showExtras
+                  ? [item.venue, formatVolumeIssue(item.volume, item.issue), item.pages, item.notes]
+                  : [item.venue, item.pages, item.notes],
+              )}
+            </p>
+
+            {showExtras && links.length > 0 && (
+              <div class="link-row">
+                {links.map((link) => (
+                  <a class="inline-link" href={link.href} rel="noreferrer">
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  ) : (
+    <p class="empty-state">{emptyMessage}</p>
+  )}
+</section>
+
+<style>
+  .publication-list {
+    border-radius: 26px;
+    padding: 1.25rem;
+  }
+
+  .stack {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .publication-card {
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--panel-contrast);
+    padding: 1rem 1rem 0.95rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .publication-card h3 {
+    margin: 0.35rem 0 0.3rem;
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+
+  .publication-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .publication-card--compact {
+    padding: 0.9rem 0.95rem;
+  }
+
+  .list-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .list-meta span + span::before {
+    content: "•";
+    margin-right: 0.45rem;
+  }
+
+  .muted,
+  .empty-state {
+    color: var(--muted);
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.6rem;
+  }
+
+  .inline-link {
+    display: inline-flex;
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .inline-link:hover {
+    color: var(--accent-2);
+  }
+</style>
