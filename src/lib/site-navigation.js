@@ -2,11 +2,6 @@ import { sitePath } from "./site-path";
 
 export const primaryNavItems = [
   {
-    href: sitePath(""),
-    label: "Home",
-    title: "Return to the homepage",
-  },
-  {
     href: sitePath("research/"),
     label: "Research",
     title: "Browse the research page",

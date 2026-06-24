@@ -1,26 +1,58 @@
 ---
+import fs from "node:fs/promises";
+import path from "node:path";
+
 const {
-  links = [],
   note = "Built with Astro and Google Sheets content.",
   year = new Date().getFullYear(),
+  repoUrl = "https://github.com/knmnyn/astro-homepage",
 } = Astro.props;
+
+const buildMetaPath = path.resolve(process.cwd(), ".cache", "astro-homepage", "build-meta.json");
+const astroHomeUrl = "https://astro.build";
+
+function formatBuildDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    timeZone: "Asia/Singapore",
+  })
+    .format(date)
+    .replaceAll("/", " ");
+}
+
+let buildLabel = "";
+
+try {
+  const raw = await fs.readFile(buildMetaPath, "utf8");
+  const parsed = JSON.parse(raw);
+  buildLabel = formatBuildDate(parsed?.built_at);
+} catch {
+  buildLabel = "";
+}
 ---
 
 <footer class="site-footer panel">
   <div class="site-footer-copy">
-    <p class="site-footer-note">{note}</p>
-    <p class="site-footer-meta">© {year} Min-Yen Kan</p>
+    <p class="site-footer-note">
+      Built with <a href={astroHomeUrl} rel="noreferrer">Astro</a> and Google Sheets content.
+    </p>
+    <p class="site-footer-meta">
+      © {year} Min-Yen Kan{buildLabel && <span> · Last build {buildLabel}</span>}
+    </p>
   </div>
 
-  {links.length > 0 && (
-    <nav class="site-footer-links" aria-label="Footer links">
-      {links.map((link) => (
-        <a href={link.href} title={link.title}>
-          {link.label}
-        </a>
-      ))}
-    </nav>
-  )}
+  <a class="site-footer-github" href={repoUrl} rel="noreferrer" aria-label="Source code on GitHub" title="Source code on GitHub">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.36 6.84 9.71.5.1.68-.22.68-.48v-1.77c-2.78.62-3.37-1.38-3.37-1.38-.45-1.17-1.1-1.48-1.1-1.48-.9-.63.07-.61.07-.61 1 .07 1.52 1.05 1.52 1.05.89 1.56 2.33 1.11 2.9.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05a9.22 9.22 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.96.68 1.94v2.87c0 .26.18.58.69.48A10.25 10.25 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z" />
+    </svg>
+  </a>
 </footer>
 
 <style>
@@ -49,24 +81,36 @@ const {
     font-size: 0.92rem;
   }
 
-  .site-footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
+  .site-footer-note a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
   }
 
-  .site-footer-links a {
+  .site-footer-note a:hover {
+    color: var(--accent-2);
+  }
+
+  .site-footer-github {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--control-bg);
-    padding: 0.6rem 0.95rem;
-    text-decoration: none;
     color: var(--accent);
-    font-weight: 700;
-    font-size: 0.92rem;
+    flex: 0 0 auto;
   }
 
-  .site-footer-links a:hover {
+  .site-footer-github svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: currentColor;
+  }
+
+  .site-footer-github:hover {
     color: var(--accent-2);
   }
 

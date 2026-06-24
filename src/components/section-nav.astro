@@ -1,35 +1,51 @@
 ---
+import { sitePath } from "../lib/site-path";
+
 const {
   items = [],
   ariaLabel = "Section navigation",
   themeLabel = "Color theme",
   themeGroupLabel = "Color theme mode",
   fontSizeLabel = "Text size",
+  brandLabel = "Min-Yen Kan",
 } = Astro.props;
 
 const currentPathname = Astro.url.pathname.replace(/\/$/, "") || "/";
-
 const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\/$/, "") || "/";
 ---
 
 <nav class="section-nav panel" aria-label={ariaLabel} data-open="false">
-  <div class="section-nav-bar">
-    <button
-      type="button"
-      class="nav-toggle"
-      aria-expanded="false"
-      aria-controls="section-nav-links"
-      aria-label="Open navigation menu"
-    >
-      <span class="nav-toggle-icon" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </span>
-      <span class="nav-toggle-label">Menu</span>
-    </button>
+  <div class="section-nav-row">
+    <a class="nav-brand" href={sitePath("")} aria-label={`${brandLabel} home`}>
+      {brandLabel}
+    </a>
+
+    <div id="section-nav-links" class="section-nav-links" aria-label={ariaLabel}>
+      {items.map((item) => {
+        const isActive = normalizePathname(item.href) === currentPathname;
+        return (
+          <a href={item.href} title={item.title} aria-current={isActive ? "page" : undefined}>
+            {item.label}
+          </a>
+        );
+      })}
+    </div>
 
     <div class="section-nav-controls">
+      <button
+        type="button"
+        class="nav-toggle"
+        aria-expanded="false"
+        aria-controls="section-nav-links"
+        aria-label="Open navigation menu"
+      >
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+
       <div class="theme-switch" aria-label={themeLabel}>
         <span class="sr-only">{themeLabel}</span>
         <div class="theme-switch-group" role="group" aria-label={themeGroupLabel}>
@@ -65,24 +81,13 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
     </div>
   </div>
 
-  <div id="section-nav-links" class="section-nav-links" aria-label={ariaLabel}>
-    {items.map((item) => {
-      const isActive = normalizePathname(item.href) === currentPathname;
-
-      return (
-        <a href={item.href} title={item.title} aria-current={isActive ? "page" : undefined}>
-          {item.label}
-        </a>
-      );
-    })}
-  </div>
-
   <script is:inline>
     (() => {
       const nav = document.currentScript?.closest(".section-nav");
       const toggle = nav?.querySelector(".nav-toggle");
       if (!nav || !toggle) return;
 
+      const media = window.matchMedia("(min-width: 721px)");
       const setOpen = (open) => {
         nav.dataset.open = String(open);
         toggle.setAttribute("aria-expanded", String(open));
@@ -93,7 +98,6 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
         setOpen(nav.dataset.open !== "true");
       });
 
-      const media = window.matchMedia("(min-width: 721px)");
       const syncLayout = () => {
         if (media.matches) {
           setOpen(false);
@@ -114,10 +118,7 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
     transform: translateX(-50%);
     z-index: 50;
     width: min(1140px, calc(100% - 1rem));
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.8rem 0.9rem;
+    padding: 0.75rem 0.85rem;
     border-radius: 22px;
     background: var(--nav-panel);
     border: 1px solid var(--nav-border);
@@ -125,35 +126,50 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
     backdrop-filter: blur(18px);
   }
 
-  .section-nav-bar {
+  .section-nav-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
     flex-wrap: nowrap;
     min-width: 0;
-    order: 2;
+  }
+
+  .nav-brand {
+    display: inline-flex;
+    align-items: center;
     flex: 0 0 auto;
+    white-space: nowrap;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent-2) 28%, var(--line));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 28%, var(--nav-chip)), var(--nav-chip));
+    padding: 0.45rem 0.85rem;
+    text-decoration: none;
+    color: var(--accent-2);
+    font-weight: 800;
+    font-size: 0.92rem;
   }
 
   .section-nav-links {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    order: 1;
+    align-items: center;
+    gap: 0.35rem;
     flex: 1 1 auto;
     min-width: 0;
+    flex-wrap: nowrap;
+    overflow: hidden;
   }
 
-  .section-nav a {
+  .section-nav-links a {
+    flex: 0 0 auto;
     border-radius: 999px;
     border: 1px solid transparent;
     background: var(--nav-chip);
-    padding: 0.5rem 0.8rem;
+    padding: 0.45rem 0.75rem;
     text-decoration: none;
     color: var(--muted);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.86rem;
+    white-space: nowrap;
     transition:
       color 160ms ease,
       border-color 160ms ease,
@@ -161,13 +177,13 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
       background-color 160ms ease;
   }
 
-  .section-nav a[aria-current="page"] {
+  .section-nav-links a[aria-current="page"] {
     color: var(--accent);
     border-color: var(--line-strong);
     background: color-mix(in srgb, var(--accent-soft) 68%, var(--nav-chip));
   }
 
-  .section-nav a:hover {
+  .section-nav-links a:hover {
     color: var(--accent-2);
     transform: translateY(-1px);
   }
@@ -175,22 +191,22 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
   .section-nav-controls {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.45rem;
+    flex: 0 0 auto;
     flex-wrap: nowrap;
-    justify-content: flex-end;
-    min-width: 0;
+    margin-left: auto;
   }
 
   .nav-toggle {
     display: none;
     align-items: center;
-    gap: 0.6rem;
+    justify-content: center;
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 0.45rem 0.8rem;
+    width: 2.1rem;
+    height: 2.1rem;
     background: var(--nav-chip);
     color: var(--muted);
-    font-weight: 700;
     cursor: pointer;
   }
 
@@ -224,8 +240,8 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
   .theme-switch-option {
     border: 0;
     border-radius: 999px;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 1.8rem;
+    height: 1.8rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -259,14 +275,14 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
   }
 
   .font-scale select {
-    min-width: 4.9rem;
+    min-width: 4.8rem;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--nav-chip);
     color: var(--muted);
     font: inherit;
     font-weight: 700;
-    padding: 0.38rem 0.62rem;
+    padding: 0.35rem 0.55rem;
   }
 
   .font-scale select:focus-visible {
@@ -285,46 +301,30 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
     border: 0;
   }
 
-  @media (max-width: 980px) {
-    .section-nav {
-      width: min(100% - 1rem, 1140px);
-    }
-  }
-
   @media (max-width: 720px) {
     .section-nav {
       top: 0.5rem;
       width: min(100% - 0.5rem, 1140px);
       padding: 0.65rem 0.7rem;
       border-radius: 18px;
-      align-items: stretch;
-      flex-wrap: wrap;
+    }
+
+    .nav-brand {
+      color: var(--accent-2);
     }
 
     .nav-toggle {
       display: inline-flex;
-      gap: 0.4rem;
-      padding: 0.4rem 0.6rem;
-    }
-
-    .section-nav-bar {
-      align-items: center;
-      gap: 0.45rem;
-      width: 100%;
-      order: 1;
-    }
-
-    .section-nav-controls {
-      margin-left: auto;
-      gap: 0.4rem;
+      flex: 0 0 auto;
     }
 
     .section-nav-links {
       display: none;
       width: 100%;
+      flex: 1 1 100%;
       padding-top: 0.75rem;
       border-top: 1px solid var(--line);
-      order: 2;
+      overflow: visible;
     }
 
     .section-nav[data-open="true"] .section-nav-links {
@@ -337,20 +337,17 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
       text-align: center;
     }
 
-    .font-scale {
-      flex: 1 1 auto;
+    .section-nav-row {
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .section-nav-controls {
+      gap: 0.35rem;
     }
 
     .font-scale select {
-      width: auto;
       min-width: 4.4rem;
-      max-width: 5.3rem;
-      padding: 0.34rem 0.5rem;
-      text-align: center;
-    }
-
-    .nav-toggle-label {
-      display: none;
     }
   }
 </style>

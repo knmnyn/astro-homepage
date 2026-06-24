@@ -17,12 +17,15 @@
  */
 
 import { spawn } from "node:child_process";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(scriptPath);
 const repoRoot = path.resolve(scriptDir, "..");
+const cacheDir = path.join(repoRoot, ".cache", "astro-homepage");
+const buildMetaPath = path.join(cacheDir, "build-meta.json");
 
 const command = process.argv[2];
 const allowedCommands = new Set(["build", "preview"]);
@@ -36,6 +39,13 @@ const env = {
   ...process.env,
   ASTRO_BASE_PATH: "/~kanmy/astro-homepage/",
 };
+
+if (command === "build") {
+  const builtAt = new Date().toISOString();
+  await fs.mkdir(cacheDir, { recursive: true });
+  await fs.writeFile(buildMetaPath, `${JSON.stringify({ built_at: builtAt }, null, 2)}\n`);
+  env.PUBLIC_LAST_BUILD_AT = builtAt;
+}
 
 await new Promise((resolve, reject) => {
   const child = spawn("astro", [command], {
