@@ -1,13 +1,29 @@
 # Astro Homepage for Min
 
-This repository is the Astro build for Min-Yen Kan's personal homepage and its subpages.
+This repository contains the Astro build for Min-Yen Kan's personal homepage and its supporting content pipeline.
+
+## Quickstart
+
+```sh
+npm install
+npm run sync:content
+npm run dev
+```
+
+Optional follow-ups:
+
+```sh
+npm run build
+npm run preview
+npm run build:export -- --dest /path/to/public_html/astro-homepage
+```
 
 The current repo has two parts:
 
 - an Astro 7 site shell in `src/`
 - a Google Sheets-to-JSON content pipeline plus export helpers in `scripts/` and `content-sources.yml`
 
-The site is now assembled as a single responsive homepage driven by the generated sheet data, with light/dark theme support and an NUS-branded export path.
+The site is assembled as a single responsive homepage driven by generated sheet data, with light/dark theme support and an NUS-branded export path.
 
 ## Current State
 
