@@ -1,0 +1,79 @@
+---
+import { getEmbeddableVideoSrc } from "../lib/url-links.js";
+
+const { links = [] } = Astro.props;
+
+const visibleLinks = Array.isArray(links)
+  ? links.filter((link) => link?.label && link?.href)
+  : [];
+
+const videoLink = visibleLinks.find((link) => String(link.label || "").toLowerCase() === "video");
+const videoEmbedSrc = videoLink ? getEmbeddableVideoSrc(videoLink.href) : "";
+const videoEmbed = videoEmbedSrc ? videoLink : null;
+const displayLinks = videoEmbed ? visibleLinks.filter((link) => link !== videoEmbed) : visibleLinks;
+---
+
+{videoEmbed && (
+  <div class="video-embed">
+    <iframe
+      src={videoEmbedSrc}
+      title="Embedded video"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen
+    ></iframe>
+  </div>
+)}
+
+{displayLinks.length > 0 && (
+  <div class="link-row" aria-label="Related links">
+    {displayLinks.map((link) => (
+      <a class="inline-link inline-link--field" href={link.href} rel="noreferrer">
+        <span>{link.label}</span>
+      </a>
+    ))}
+  </div>
+)}
+
+<style>
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.6rem;
+  }
+
+  .inline-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .inline-link:hover {
+    color: var(--accent-2);
+  }
+
+  .inline-link--field span {
+    display: inline-block;
+  }
+
+  .video-embed {
+    position: relative;
+    margin-top: 0.75rem;
+    padding-top: 56.25%;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  .video-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

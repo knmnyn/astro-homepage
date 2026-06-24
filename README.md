@@ -42,6 +42,8 @@ What is here now:
 - a sheet-driven shared nav, where `Nav Header` controls the visible bar text and `Header` stays the canonical page title
 - a compact theme switch and font-size control in the shared navigation
 - per-section Astro routes wired to the generated sheet data
+- any generated sheet column that ends in `URL` is surfaced as a clickable link labeled with the column text, except for the root `URL` field which continues to drive the primary title link
+- the student sheet uses `Title`, `Avatar`, and `URL` for the current cohort cards
 
 ## Homepage Design
 
@@ -274,12 +276,15 @@ The site strips these markers when reading values, so the visible label text sta
 
 - `ID`
   - stable row identifier for the content model
+- `Section`
+  - publication archive grouping label used to split the archive into separate sections
 - `Sort`
   - optional override for ordering when a component supports sorted rendering
 - `Notes`
   - freeform supporting text
 - `URL`-style fields
   - any field ending in `URL` is treated as a link when the component supports it
+  - the talks sheet also treats `Video` as a link-bearing field so embed-style URLs can render as responsive players
 
 ### Nav
 
@@ -296,7 +301,7 @@ The nav sheet drives the shared navigation bar.
 - `Visible`
   - `TRUE` rows are shown, `FALSE` rows are hidden
 - `Summary`, `Kicker`, `Trailer`
-  - optional markdown-capable text fields for future nav presentation
+  - optional markdown-capable text fields used for page copy and section kickers
 
 ### Research Talks
 
@@ -320,10 +325,19 @@ The talks sheet feeds the research archive and the homepage talk summary.
   - sortable date field
 - `Slides URL`
   - optional slide link
-- `Video URL`
-  - optional embed link for a video player
+- `Video`
+  - optional video link or embed command; embed-style URLs render as responsive players
+  - supported inputs include YouTube embed URLs, `youtu.be` links, Vimeo page/embed URLs, and raw `<iframe ...>` snippets
+  - Vimeo page/embed forms are normalized to the Vimeo player URL before rendering
+  - if an iframe snippet is supplied, the `src` attribute is extracted and used for the player
 - `Notes`
   - optional supporting note
+
+Talk cards with embeddable video URLs span the full grid width in the homepage and research layouts, while non-video talks stay in compact grid cards. When a talk has an embedded video, the player renders before the Slides link in the card footer.
+
+The publications archive uses a 3-column grid within each section type on wide screens, collapsing to 2 columns on medium screens and 1 column on small screens so the standard card spacing stays intact while the page remains dense and readable.
+
+The video parser is intentionally permissive enough to handle the spreadsheet's current export format, but it only extracts iframe `src` values and does not execute or preserve arbitrary iframe markup.
 
 Default talk rendering keeps sheet row order unless `Sort` is populated. The research page applies that override; the base data layer should stay close to the raw watcher output.
 
@@ -355,7 +369,7 @@ The remaining sheets follow the same general pattern:
 - `teaching`
   - course history with academic year, term, course code, role, section, and notes
 - `students`
-  - supervision records with cohort, level, name, role, interests, and status
+  - supervision records with cohort, level, title, role, avatar, URL, interests, and status
 - `software`
   - software/project records with name, description, repository/docs links, status, tags, and featured flag
 - `service`
@@ -364,6 +378,8 @@ The remaining sheets follow the same general pattern:
   - personal archive links with label, category, description, URL, and featured flag
 
 The site strips the marker prefixes on read, so the component code can work with clean field names while the spreadsheet keeps the richer authoring hints. Sort chips compare numbers naturally, including decimal values and magnitude suffixes like `K`, `M`, and `B`, and also compare date-like values chronologically when a field contains dates such as `24 Aug 2018` or `2018-08-24`.
+
+Unit tests under `test/` cover the data normalization helpers, including URL-field labeling, embed detection, student sheet mapping, and nav text extraction.
 
 ## Project Structure
 

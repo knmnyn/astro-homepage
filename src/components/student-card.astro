@@ -1,0 +1,135 @@
+---
+import CardTitleLink from "./card-title-link.astro";
+
+const {
+  title = "Student",
+  role = "",
+  avatar = "",
+  url = "",
+  cohort = "",
+  level = "",
+  interests = "",
+  status = "",
+  class: className = "",
+  ...rest
+} = Astro.props;
+
+const initials = String(title || "S")
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((part) => part[0])
+  .join("")
+  .toUpperCase();
+---
+
+<article class={`student-card ${className}`.trim()} {...rest}>
+  <div class="student-card__avatar">
+    {avatar ? (
+      <img src={avatar} alt={title} loading="lazy" decoding="async" />
+    ) : (
+      <div class="student-card__avatar-fallback" aria-hidden="true">{initials}</div>
+    )}
+  </div>
+
+  <div class="student-card__body">
+    <p class="student-card__topline">
+      {cohort || "n.d."}
+      {level ? ` · ${level}` : ""}
+    </p>
+    <CardTitleLink title={title} url={url} />
+    <p class="student-card__role">{role}</p>
+    {status && <p class="student-card__status">{status}</p>}
+    {interests && <p class="student-card__interests">{interests}</p>}
+  </div>
+</article>
+
+<style>
+  .student-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--panel-contrast);
+    padding: 0.8rem 0.85rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .student-card__avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--accent-soft);
+    border: 1px solid var(--line-strong);
+    flex-shrink: 0;
+  }
+
+  .student-card__avatar img,
+  .student-card__avatar-fallback {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .student-card__avatar-fallback {
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--accent-2);
+    background: var(--accent-soft);
+  }
+
+  .student-card__body {
+    min-width: 0;
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .student-card__topline {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .student-card h3 {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+
+  .student-card__role,
+  .student-card__status,
+  .student-card__interests {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .student-card__role {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .student-card__interests {
+    margin-top: 0.15rem;
+  }
+
+  @media (max-width: 720px) {
+    .student-card {
+      grid-template-columns: 1fr;
+    }
+
+    .student-card__avatar {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+  }
+</style>

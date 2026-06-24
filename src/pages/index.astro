@@ -3,10 +3,15 @@ import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
 import PublicationList from "../components/publication-list.astro";
+import CardTitleLink from "../components/card-title-link.astro";
+import CardUrlLinks from "../components/card-url-links.astro";
+import StudentCard from "../components/student-card.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
-import { primaryNavItems } from "../lib/site-navigation";
+import { getNavSectionText, primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
+import { renderInlineMarkdown } from "../lib/inline-markdown.js";
+import { isFeaturedTalkCard } from "../lib/url-links.js";
 
 const profile = siteData.profile;
 
@@ -25,6 +30,21 @@ const featuredSoftware = siteData.software.filter((item) => item.featured === "y
 const featuredService = siteData.service.slice(0, 4);
 const featuredLinks = siteData.personalLinks.filter((item) => item.featured === "yes" || item.featured === "Yes");
 const sectionNavItems = primaryNavItems;
+const researchText = getNavSectionText("research", { kicker: "Research" });
+const teachingText = getNavSectionText("teaching", { kicker: "Teaching" });
+const studentsText = getNavSectionText("students", {
+  kicker: "Students",
+  header: "Students",
+  summary: "Current student cohort",
+  intro: "Selected active students from the sheet.",
+  trailer: "The cohort list is grouped below by role.",
+});
+const softwareText = getNavSectionText("software", { kicker: "Software" });
+const talksText = getNavSectionText("talks", { kicker: "Talks" });
+const grantsText = getNavSectionText("grants", { kicker: "Grants" });
+const serviceText = getNavSectionText("service", { kicker: "Service" });
+const miscText = getNavSectionText("misc", { kicker: "Misc" });
+const publicationsText = getNavSectionText("publications", { kicker: "Publications" });
 
 const footerLinks = [
   {
@@ -59,22 +79,28 @@ const contactItems = [
 
     <section id="research" class="content-grid">
       <div class="section-intro panel">
-        <p class="section-kicker">Research</p>
-        <h2>What this homepage is organized around</h2>
+        <p class="section-kicker" set:html={renderInlineMarkdown(researchText.kicker)}></p>
+        <h2>{researchText.header}</h2>
+        {researchText.summary && <p class="section-summary" set:html={renderInlineMarkdown(researchText.summary)}></p>}
         <p>
           The sheet-driven site keeps the homepage compact while still reflecting the structure
           of the original website: research-oriented publications, current students, course
           history, software, service, talks, grants, and personal links.
         </p>
+        {researchText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(researchText.intro)}></span>}
         <div class="tag-row">
           {publicationAreas.map((area) => <span>{area}</span>)}
         </div>
+        {researchText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(researchText.trailer)}></span>}
       </div>
 
       <PublicationList
         id="featured-publications"
-        title="Featured publications"
-        summary="A few representative items to keep the homepage readable. The full archive lives on the publications page."
+        title={publicationsText.header}
+        summary={publicationsText.summary}
+        kicker={publicationsText.kicker}
+        intro={publicationsText.intro}
+        trailer={publicationsText.trailer}
         items={featuredPublications}
       />
     </section>
@@ -82,13 +108,12 @@ const contactItems = [
     <section id="teaching" class="panel section-block">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Teaching</p>
-          <h2>Courses and facilitation</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(teachingText.kicker)}></p>
+          <h2>{teachingText.header}</h2>
         </div>
-        <p class="section-summary">
-          Latest entries from the teaching sheet. <a class="inline-link" href={sitePath("teaching/")}>Full teaching page</a>.
-        </p>
+        {teachingText.summary && <p class="section-summary" set:html={renderInlineMarkdown(teachingText.summary)}></p>}
       </div>
+      {teachingText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(teachingText.intro)}></span>}
       <div class="card-grid">
         {currentTeaching.map((item) => (
           <article class="info-card">
@@ -96,76 +121,65 @@ const contactItems = [
               {item.academicYear || "n.d."}
               {item.term ? ` · ${item.term}` : ""}
             </p>
-            <h3>
-              {item.courseCode ? `${item.courseCode} ` : ""}
-              {item.courseTitle || "Course"}
-            </h3>
+            <CardTitleLink
+              title={`${item.courseCode ? `${item.courseCode} ` : ""}${item.courseTitle || "Course"}`}
+              url={item.url || ""}
+            />
             <p>{[item.role, item.level, item.section].filter(Boolean).join(" · ")}</p>
+            <CardUrlLinks links={item.links} />
             {item.notes && <p class="muted">{item.notes}</p>}
-            {item.url && (
-              <a class="inline-link" href={item.url} rel="noreferrer">
-                Course page
-              </a>
-            )}
           </article>
-        ))}
+          ))}
       </div>
+      {teachingText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(teachingText.trailer)}></span>}
     </section>
 
     <section class="dual-grid">
       <div id="students" class="panel section-block">
         <div class="section-header">
           <div>
-            <p class="section-kicker">Students</p>
-            <h2>Current supervision snapshot</h2>
+            <p class="section-kicker" set:html={renderInlineMarkdown(studentsText.kicker)}></p>
+            <h2>{studentsText.header}</h2>
           </div>
         </div>
-        <div class="stack">
+        {studentsText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(studentsText.intro)}></span>}
+        <div class="student-grid">
           {featuredStudents.map((item) => (
-            <article class="info-card compact">
-              <p class="card-topline">
-                {item.cohort || "n.d."}
-                {item.level ? ` · ${item.level}` : ""}
-              </p>
-              <h3>{item.name}</h3>
-              <p>{[item.role, item.status].filter(Boolean).join(" · ")}</p>
-              {item.interests && <p class="muted">{item.interests}</p>}
-            </article>
+            <StudentCard
+              title={item.title || "Student"}
+              role={item.role || ""}
+              avatar={item.avatar || ""}
+              url={item.url || ""}
+              cohort={item.cohort || ""}
+              level={item.level || ""}
+              status={item.status || ""}
+              interests={item.interests || ""}
+            />
           ))}
         </div>
+        {studentsText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(studentsText.trailer)}></span>}
       </div>
 
       <div id="software" class="panel section-block">
         <div class="section-header">
           <div>
-            <p class="section-kicker">Software</p>
-            <h2>Featured tools and projects</h2>
+            <p class="section-kicker" set:html={renderInlineMarkdown(softwareText.kicker)}></p>
+            <h2>{softwareText.header}</h2>
           </div>
-          <p class="section-summary">
-            The full software inventory now lives on the <a class="inline-link" href={sitePath("research/")}>research page</a>.
-          </p>
+          {softwareText.summary && <p class="section-summary" set:html={renderInlineMarkdown(softwareText.summary)}></p>}
         </div>
+        {softwareText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(softwareText.intro)}></span>}
         <div class="stack">
           {featuredSoftware.map((item) => (
             <article class="list-item compact">
-              <h3>{item.name}</h3>
+              <CardTitleLink title={item.name || "Software"} url={item.url || ""} />
               <p>{item.description}</p>
               <p class="muted">{item.tags}</p>
-              <div class="link-row">
-                {item.repoUrl && (
-                  <a class="inline-link" href={item.repoUrl} rel="noreferrer">
-                    Repo
-                  </a>
-                )}
-                {item.docsUrl && (
-                  <a class="inline-link" href={item.docsUrl} rel="noreferrer">
-                    Docs
-                  </a>
-                )}
-              </div>
+              <CardUrlLinks links={item.links} />
             </article>
           ))}
         </div>
+        {softwareText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(softwareText.trailer)}></span>}
       </div>
     </section>
 
@@ -173,55 +187,60 @@ const contactItems = [
       <div id="talks" class="panel section-block">
         <div class="section-header">
           <div>
-            <p class="section-kicker">Talks</p>
-            <h2>Talk history</h2>
+            <p class="section-kicker" set:html={renderInlineMarkdown(talksText.kicker)}></p>
+            <h2>{talksText.header}</h2>
           </div>
         </div>
-        <div class="stack">
+        {talksText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(talksText.intro)}></span>}
+        <div class="talk-grid">
           {featuredTalks.map((item) => (
-            <article class="info-card compact">
+            <article class={`info-card compact talk-card ${isFeaturedTalkCard(item) ? "talk-card--featured" : ""}`.trim()}>
               <p class="card-topline">
                 {item.date || item.year || "n.d."}
-                {item.event ? ` · ${item.event}` : ""}
+                {item.location ? ` · ${item.location}` : ""}
               </p>
-              <h3>{item.title || "Talk"}</h3>
-              <p>{[item.venue, item.location].filter(Boolean).join(" · ")}</p>
+              <CardTitleLink title={item.title || "Talk"} url={item.url || ""} />
+              <p>{[item.event, item.venue].filter(Boolean).join(" · ")}</p>
+              <CardUrlLinks links={item.links} />
             </article>
           ))}
         </div>
+        {talksText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(talksText.trailer)}></span>}
       </div>
 
       <div id="grants" class="panel section-block">
         <div class="section-header">
           <div>
-            <p class="section-kicker">Grants</p>
-            <h2>Research support</h2>
+            <p class="section-kicker" set:html={renderInlineMarkdown(grantsText.kicker)}></p>
+            <h2>{grantsText.header}</h2>
           </div>
         </div>
+        {grantsText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(grantsText.intro)}></span>}
         <div class="stack">
           {featuredGrants.map((item) => (
             <article class="info-card compact">
               <p class="card-topline">
                 {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
               </p>
-              <h3>{item.title || "Grant"}</h3>
+              <CardTitleLink title={item.title || "Grant"} url={item.url || ""} />
               <p>{[item.role, item.sponsor].filter(Boolean).join(" · ")}</p>
               {item.amount && <p class="muted">{`${item.currency || ""} ${item.amount}`.trim()}</p>}
+              <CardUrlLinks links={item.links} />
             </article>
           ))}
         </div>
+        {grantsText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(grantsText.trailer)}></span>}
       </div>
 
       <div id="service" class="panel section-block">
         <div class="section-header">
           <div>
-            <p class="section-kicker">Service</p>
-            <h2>Professional and scholarly service</h2>
+            <p class="section-kicker" set:html={renderInlineMarkdown(serviceText.kicker)}></p>
+            <h2>{serviceText.header}</h2>
           </div>
-        <p class="section-summary">
-          Selected highlights from the service sheet. <a class="inline-link" href={sitePath("misc/")}>Full service archive</a>.
-        </p>
+          {serviceText.summary && <p class="section-summary" set:html={renderInlineMarkdown(serviceText.summary)}></p>}
         </div>
+        {serviceText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(serviceText.intro)}></span>}
         <div class="stack">
           {featuredService.map((item) => (
             <article class="list-item compact">
@@ -229,41 +248,36 @@ const contactItems = [
                 {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
                 {item.category ? ` · ${item.category}` : ""}
               </p>
-              <h3>{[item.role, item.organization].filter(Boolean).join(" · ")}</h3>
+              <CardTitleLink title={[item.role, item.organization].filter(Boolean).join(" · ") || "Service"} url={item.url || ""} />
               <p class="muted">{item.description}</p>
+              <CardUrlLinks links={item.links} />
             </article>
           ))}
         </div>
+        {serviceText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(serviceText.trailer)}></span>}
       </div>
     </section>
 
     <section id="misc" class="panel section-block">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Misc</p>
-          <h2>Personal links and extras</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(miscText.kicker)}></p>
+          <h2>{miscText.header}</h2>
         </div>
-        <p class="section-summary">
-          Shortcuts carried over from the old personal page. <a class="inline-link" href={sitePath("misc/")}>Open the full archive</a>.
-        </p>
+        {miscText.summary && <p class="section-summary" set:html={renderInlineMarkdown(miscText.summary)}></p>}
       </div>
+      {miscText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(miscText.intro)}></span>}
       <div class="card-grid">
         {featuredLinks.map((item) => (
           <article class="info-card">
             <p class="card-topline">{item.category || "link"}</p>
-            <h3>
-              {item.url ? (
-                <a href={item.url} rel="noreferrer">
-                  {item.label || "Link"}
-                </a>
-              ) : (
-                item.label || "Link"
-              )}
-            </h3>
+            <CardTitleLink title={item.label || "Link"} url={item.url || ""} />
             <p>{item.description}</p>
+            <CardUrlLinks links={item.links} />
           </article>
         ))}
       </div>
+      {miscText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(miscText.trailer)}></span>}
     </section>
 
     <SiteFooter links={footerLinks} />
@@ -352,6 +366,23 @@ const contactItems = [
     gap: 0.85rem;
   }
 
+  .student-grid {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .talk-grid {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .talk-card--featured {
+    grid-column: 1 / -1;
+  }
+
   .info-card {
     border-radius: 20px;
     border: 1px solid var(--line);
@@ -374,30 +405,18 @@ const contactItems = [
     color: var(--muted);
   }
 
-  .inline-link {
-    display: inline-flex;
-    margin-top: 0.6rem;
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .inline-link:hover,
-  .action-link:hover {
-    color: var(--accent-2);
-  }
-
-  .link-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-    margin-top: 0.6rem;
-  }
-
   @media (max-width: 980px) {
     .content-grid,
     .dual-grid,
     .tri-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .student-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .talk-grid {
       grid-template-columns: 1fr;
     }
 

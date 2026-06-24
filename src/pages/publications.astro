@@ -5,13 +5,17 @@ import SectionNav from "../components/section-nav.astro";
 import PublicationList from "../components/publication-list.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
-import { primaryNavItems } from "../lib/site-navigation";
+import { getNavSectionText, primaryNavItems } from "../lib/site-navigation";
+import { groupPublicationsBySection } from "../lib/publication-groups.js";
 import { sitePath } from "../lib/site-path";
+import { renderInlineMarkdown } from "../lib/inline-markdown.js";
 
 const profile = siteData.profile;
 const publicationAreas = [...new Set(siteData.publications.map((item) => item.area).filter(Boolean))];
 const featuredPublications = siteData.publications.slice(0, 8);
 const archivePublications = siteData.publications;
+const publicationGroups = groupPublicationsBySection(archivePublications);
+const publicationsText = getNavSectionText("publications", { kicker: "Publications" });
 
 const navItems = primaryNavItems;
 
@@ -62,20 +66,41 @@ const footerLinks = [
 
     <PublicationList
       id="featured"
-      title="Featured publications"
-      summary="Representative items from the archive."
+      title={publicationsText.header}
+      summary={publicationsText.summary}
+      kicker={publicationsText.kicker}
+      intro={publicationsText.intro}
+      trailer={publicationsText.trailer}
       items={featuredPublications}
       showExtras={true}
     />
 
-    <PublicationList
-      id="archive"
-      title="Full publication archive"
-      summary="The complete publication list from the sheet."
-      items={archivePublications}
-      sheet={siteData.sources.publications}
-      showExtras={true}
-    />
+    <section id="archive" class="panel section-block archive-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker" set:html={renderInlineMarkdown(publicationsText.kicker)}></p>
+          <h2>{publicationsText.header}</h2>
+        </div>
+        <div class="section-header-aside">
+          {publicationsText.summary && <p class="section-summary" set:html={renderInlineMarkdown(publicationsText.summary)}></p>}
+          {publicationsText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(publicationsText.intro)}></span>}
+        </div>
+      </div>
+
+      <div class="publication-groups">
+        {publicationGroups.map((group) => (
+          <PublicationList
+            id={`archive-${group.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "other"}`}
+            title={group.label}
+            items={group.items}
+            showExtras={true}
+            masonryGrid={true}
+          />
+        ))}
+      </div>
+
+      {publicationsText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(publicationsText.trailer)}></span>}
+    </section>
 
     <SiteFooter links={footerLinks} />
   </main>
@@ -95,6 +120,30 @@ const footerLinks = [
     border: 1px solid var(--line);
     box-shadow: var(--shadow);
     backdrop-filter: blur(18px);
+  }
+
+  .archive-block {
+    display: grid;
+    gap: 1rem;
+    border-radius: 26px;
+    padding: 1.25rem;
+  }
+
+  .archive-block .section-header-aside {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: end;
+  }
+
+  .publication-groups {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (max-width: 980px) {
+    .archive-block .section-header-aside {
+      justify-items: start;
+    }
   }
 
   @media (max-width: 980px) {

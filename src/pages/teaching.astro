@@ -3,11 +3,13 @@ import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
 import SectionMetrics from "../components/section-metrics.astro";
+import CardTitleLink from "../components/card-title-link.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
-import { primaryNavItems } from "../lib/site-navigation";
+import { getNavSectionText, primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
 import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
+import { renderInlineMarkdown } from "../lib/inline-markdown.js";
 
 const profile = siteData.profile;
 const teachingItems = siteData.teaching;
@@ -16,6 +18,7 @@ const teachingYears = [...new Set(teachingItems.map((item) => item.academicYear)
 const latestTeaching = teachingItems[0] || {};
 const teachingMetrics = buildSheetMetrics(siteData.sources.teaching);
 const teachingCountMetric = getSheetCountMetric(teachingMetrics);
+const teachingText = getNavSectionText("teaching", { kicker: "Teaching" });
 
 const navItems = primaryNavItems;
 
@@ -67,14 +70,16 @@ const footerLinks = [
     <section class="panel section-block" data-metric-scope-root="teaching-archive">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Teaching{teachingCountMetric ? ` · ${teachingCountMetric.value}` : ""}</p>
-          <h2>Full teaching archive</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(`${teachingText.kicker || ""}${teachingCountMetric ? ` · ${teachingCountMetric.value}` : ""}`)}></p>
+          <h2>{teachingText.header}</h2>
         </div>
         <div class="section-header-aside">
-          <p class="section-summary">All teaching sheet entries are listed here.</p>
+          {teachingText.summary && <p class="section-summary" set:html={renderInlineMarkdown(teachingText.summary)}></p>}
           <SectionMetrics metrics={teachingMetrics} scope="teaching-archive" />
         </div>
       </div>
+
+      {teachingText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(teachingText.intro)}></span>}
 
       <div class="stack">
         {teachingItems.map((item, index) => (
@@ -83,20 +88,17 @@ const footerLinks = [
               {item.academicYear || "n.d."}
               {item.term ? ` · ${item.term}` : ""}
             </p>
-            <h3>
-              {item.courseCode ? `${item.courseCode} ` : ""}
-              {item.courseTitle || "Course"}
-            </h3>
+            <CardTitleLink
+              title={`${item.courseCode ? `${item.courseCode} ` : ""}${item.courseTitle || "Course"}`}
+              url={item.url || ""}
+            />
             <p>{[item.role, item.level, item.section].filter(Boolean).join(" · ")}</p>
             {item.notes && <p class="muted">{item.notes}</p>}
-            {item.url && (
-              <a class="inline-link" href={item.url} rel="noreferrer">
-                Course page
-              </a>
-            )}
           </article>
         ))}
       </div>
+
+      {teachingText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(teachingText.trailer)}></span>}
     </section>
 
     <SiteFooter links={footerLinks} />
@@ -178,18 +180,6 @@ const footerLinks = [
     margin: 0;
     color: var(--muted);
     line-height: 1.6;
-  }
-
-  .inline-link {
-    display: inline-flex;
-    margin-top: 0.6rem;
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .inline-link:hover {
-    color: var(--accent-2);
   }
 
   .muted {

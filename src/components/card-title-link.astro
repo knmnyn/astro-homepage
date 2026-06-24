@@ -1,0 +1,20 @@
+---
+const {
+  title = "Untitled",
+  url = "",
+  level = 3,
+  class: className = "",
+} = Astro.props;
+
+const HeadingTag = `h${level}`;
+---
+
+<HeadingTag class={className}>
+  {url ? (
+    <a href={url} rel="noreferrer">
+      {title}
+    </a>
+  ) : (
+    title
+  )}
+</HeadingTag>

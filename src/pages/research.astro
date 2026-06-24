@@ -2,14 +2,18 @@
 import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
-import PublicationList from "../components/publication-list.astro";
+import CardTitleLink from "../components/card-title-link.astro";
+import CardUrlLinks from "../components/card-url-links.astro";
+import StudentCard from "../components/student-card.astro";
 import SectionMetrics from "../components/section-metrics.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
-import { primaryNavItems } from "../lib/site-navigation";
+import { getNavSectionText, primaryNavItems } from "../lib/site-navigation";
 import { sortTalkItems } from "../lib/talk-order.js";
 import { sitePath } from "../lib/site-path";
 import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
+import { renderInlineMarkdown } from "../lib/inline-markdown.js";
+import { isFeaturedTalkCard } from "../lib/url-links.js";
 
 const profile = siteData.profile;
 const softwareItems = siteData.software;
@@ -21,7 +25,7 @@ const studentRecords = Array.isArray(siteData.sources.students?.records) ? siteD
 const talkRecords = Array.isArray(siteData.sources.talks?.records) ? siteData.sources.talks.records : [];
 const grantRecords = Array.isArray(siteData.sources.grants?.records) ? siteData.sources.grants.records : [];
 const softwareTags = [...new Set(softwareItems.flatMap((item) => String(item.tags || "").split(/\s*,\s*/).filter(Boolean)))];
-const featuredPublications = siteData.publications.slice(0, 8);
+const publicationAreas = [...new Set(siteData.publications.map((item) => item.area).filter(Boolean))];
 const latestSoftware = softwareItems[0] || {};
 const latestStudent = studentItems[0] || {};
 const sortedTalkItems = sortTalkItems(talkItems);
@@ -35,6 +39,41 @@ const softwareCountMetric = getSheetCountMetric(softwareMetrics);
 const studentCountMetric = getSheetCountMetric(studentMetrics);
 const talkCountMetric = getSheetCountMetric(talkMetrics);
 const grantCountMetric = getSheetCountMetric(grantMetrics);
+const researchText = getNavSectionText("research", { kicker: "Research" });
+const softwareText = getNavSectionText("software", { kicker: "Software" });
+const studentsText = getNavSectionText("students", {
+  kicker: "Students",
+  header: "Students",
+  summary: "Current student cohort",
+  intro: "Students are grouped by role for a tighter scan of the roster.",
+  trailer: "The full cohort appears above.",
+});
+const talksText = getNavSectionText("talks", { kicker: "Talks" });
+const grantsText = getNavSectionText("grants", { kicker: "Grants" });
+
+function studentGroupLabel(role = "") {
+  const normalized = String(role).toLowerCase();
+  if (normalized.includes("doctoral")) {
+    return "Doctoral Students";
+  }
+  if (normalized.includes("master")) {
+    return "Master Students";
+  }
+  if (normalized.includes("urop") || normalized.includes("fyp") || normalized.includes("undergraduate") || normalized.includes("cp")) {
+    return "Undergraduate Students";
+  }
+  return role || "Students";
+}
+
+const studentGroups = Array.from(
+  studentItems.reduce((map, item) => {
+    const label = studentGroupLabel(item.role);
+    const group = map.get(label) || [];
+    group.push(item);
+    map.set(label, group);
+    return map;
+  }, new Map()),
+).map(([label, items]) => ({ label, items }));
 
 const footerLinks = [
   {
@@ -78,7 +117,7 @@ const footerLinks = [
         },
         {
           label: "Latest student",
-          value: latestStudent.name || "—",
+          value: latestStudent.title || "—",
           text: [latestStudent.role, latestStudent.status].filter(Boolean).join(" · ") || "Student record",
         },
         {
@@ -97,24 +136,31 @@ const footerLinks = [
 
     <SectionNav items={primaryNavItems} />
 
-    <PublicationList
-      id="featured-publications"
-      title="Featured publications"
-      summary="A small set of representative publications so the research page stays readable."
-      items={featuredPublications}
-      showExtras={true}
-    />
+    <section id="overview" class="section-intro panel">
+      <p class="section-kicker" set:html={renderInlineMarkdown(researchText.kicker)}></p>
+      <h2>{researchText.header}</h2>
+      {researchText.summary && <p class="section-summary" set:html={renderInlineMarkdown(researchText.summary)}></p>}
+      <p>
+        The sheet-driven site keeps the homepage compact while still reflecting the structure
+        of the original website: research-oriented publications, current students, course
+        history, software, service, talks, grants, and personal links.
+      </p>
+      {researchText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(researchText.intro)}></span>}
+      <div class="tag-row">
+        {publicationAreas.map((area) => <span>{area}</span>)}
+      </div>
+      {researchText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(researchText.trailer)}></span>}
+    </section>
 
     <section id="software" class="panel section-block" data-metric-scope-root="research-software">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Software{softwareCountMetric ? ` · ${softwareCountMetric.value}` : ""}</p>
-          <h2>Full software archive</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(`${softwareText.kicker || ""}${softwareCountMetric ? ` · ${softwareCountMetric.value}` : ""}`)}></p>
+          <h2>{softwareText.header}</h2>
         </div>
         <div class="section-header-aside">
-          <p class="section-summary">
-            The complete software list now lives here, with project links and docs kept together.
-          </p>
+          {softwareText.summary && <p class="section-summary" set:html={renderInlineMarkdown(softwareText.summary)}></p>}
+          {softwareText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(softwareText.intro)}></span>}
           <SectionMetrics metrics={softwareMetrics} scope="research-software" />
         </div>
       </div>
@@ -126,72 +172,77 @@ const footerLinks = [
               {item.status && <span>{item.status}</span>}
               {item.tags && <span>{item.tags}</span>}
             </div>
-            <h3>{item.name || "Software"}</h3>
+            <CardTitleLink title={item.name || "Software"} url={item.url || ""} />
             <p class="muted">{item.description}</p>
-            <div class="link-row">
-              {item.repoUrl && (
-                <a class="inline-link" href={item.repoUrl} rel="noreferrer">
-                  Repo
-                </a>
-              )}
-              {item.docsUrl && (
-                <a class="inline-link" href={item.docsUrl} rel="noreferrer">
-                  Docs
-                </a>
-              )}
-            </div>
+            <CardUrlLinks links={item.links} />
           </article>
         ))}
       </div>
+      {softwareText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(softwareText.trailer)}></span>}
     </section>
 
     <section id="students" class="panel section-block" data-metric-scope-root="research-students">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Students{studentCountMetric ? ` · ${studentCountMetric.value}` : ""}</p>
-          <h2>Full student list</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(`${studentsText.kicker || ""}${studentCountMetric ? ` · ${studentCountMetric.value}` : ""}`)}></p>
+          <h2>{studentsText.header}</h2>
         </div>
         <div class="section-header-aside">
-          <p class="section-summary">
-            The full student roster stays here while the homepage keeps only the current highlights.
-          </p>
+          {studentsText.summary && <p class="section-summary" set:html={renderInlineMarkdown(studentsText.summary)}></p>}
+          {studentsText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(studentsText.intro)}></span>}
           <SectionMetrics metrics={studentMetrics} scope="research-students" />
         </div>
       </div>
 
-      <div class="stack">
-        {studentItems.map((item, index) => (
-          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(studentRecords[index], studentMetrics))}>
-            <p class="card-topline">
-              {item.cohort || "n.d."}
-              {item.level ? ` · ${item.level}` : ""}
-            </p>
-            <h3>{item.name || "Student"}</h3>
-            <p>{[item.role, item.status].filter(Boolean).join(" · ")}</p>
-            {item.interests && <p class="muted">{item.interests}</p>}
-          </article>
+      <div class="student-groups">
+        {studentGroups.map((group) => (
+          <section class="student-group">
+            <h3>{group.label}</h3>
+            <div class="student-grid">
+              {group.items.map((item) => {
+                const index = studentItems.indexOf(item);
+                return (
+                  <StudentCard
+                    title={item.title || "Student"}
+                    role={item.role || ""}
+                    avatar={item.avatar || ""}
+                    url={item.url || ""}
+                    cohort={item.cohort || ""}
+                    level={item.level || ""}
+                    status={item.status || ""}
+                    interests={item.interests || ""}
+                    data-metric-card
+                    data-metric-values={JSON.stringify(buildMetricCardData(studentRecords[index], studentMetrics))}
+                  />
+                );
+              })}
+            </div>
+          </section>
         ))}
       </div>
+      {studentsText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(studentsText.trailer)}></span>}
     </section>
 
     <section id="talks" class="panel section-block" data-metric-scope-root="research-talks">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Talks{talkCountMetric ? ` · ${talkCountMetric.value}` : ""}</p>
-          <h2>Full talk history</h2>
+          <p
+            class="section-kicker"
+            set:html={renderInlineMarkdown(talksText.header ? `${talksText.kicker || ""}${talkCountMetric ? ` · ${talkCountMetric.value}` : ""}` : "")}
+          ></p>
+          <h2>{talksText.header}</h2>
         </div>
         <div class="section-header-aside">
-          <p class="section-summary">
-            The complete talk history lives here, with the latest presentation surfaced in the hero.
-          </p>
+          {talksText.summary && <p class="section-summary" set:html={renderInlineMarkdown(talksText.summary)}></p>}
+          {talksText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(talksText.intro)}></span>}
           <SectionMetrics metrics={talkMetrics} scope="research-talks" />
         </div>
       </div>
 
-      <div class="stack">
+      <div class="talk-grid">
         {sortedTalkItems.map((item, index) => (
           <article
-            class="list-item"
+            class={`list-item talk-card ${isFeaturedTalkCard(item) ? "talk-card--featured" : ""}`.trim()}
             data-metric-card
             data-metric-values={JSON.stringify(
               buildMetricCardData(talkRecords[item.sourceIndex] ?? talkRecords[index] ?? {}, talkMetrics),
@@ -203,26 +254,27 @@ const footerLinks = [
             </div>
             <p class="card-topline">
               {item.date || item.year || "n.d."}
-              {item.event ? ` · ${item.event}` : ""}
+              {item.location ? ` · ${item.location}` : ""}
             </p>
-            <h3>{item.title || "Talk"}</h3>
-            <p>{[item.venue, item.location].filter(Boolean).join(" · ")}</p>
+            <CardTitleLink title={item.title || "Talk"} url={item.url || ""} />
+            <p>{[item.event, item.venue].filter(Boolean).join(" · ")}</p>
             {item.notes && <p class="muted">{item.notes}</p>}
+            <CardUrlLinks links={item.links} />
           </article>
         ))}
       </div>
+      {talksText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(talksText.trailer)}></span>}
     </section>
 
     <section id="grants" class="panel section-block" data-metric-scope-root="research-grants">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Grants{grantCountMetric ? ` · ${grantCountMetric.value}` : ""}</p>
-          <h2>Full grant history</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(`${grantsText.kicker || ""}${grantCountMetric ? ` · ${grantCountMetric.value}` : ""}`)}></p>
+          <h2>{grantsText.header}</h2>
         </div>
         <div class="section-header-aside">
-          <p class="section-summary">
-            The complete grant list lives here, with the newest item highlighted in the hero area.
-          </p>
+          {grantsText.summary && <p class="section-summary" set:html={renderInlineMarkdown(grantsText.summary)}></p>}
+          {grantsText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(grantsText.intro)}></span>}
           <SectionMetrics metrics={grantMetrics} scope="research-grants" />
         </div>
       </div>
@@ -234,13 +286,15 @@ const footerLinks = [
               {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
               {item.recordType ? ` · ${item.recordType}` : ""}
             </p>
-            <h3>{item.title || "Grant"}</h3>
+            <CardTitleLink title={item.title || "Grant"} url={item.url || ""} />
             <p>{[item.role, item.sponsor].filter(Boolean).join(" · ")}</p>
             {item.amount && <p class="muted">{`${item.currency || ""} ${item.amount}`.trim()}</p>}
             {item.notes && <p class="muted">{item.notes}</p>}
+            <CardUrlLinks links={item.links} />
           </article>
         ))}
       </div>
+      {grantsText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(grantsText.trailer)}></span>}
     </section>
 
     <SiteFooter links={footerLinks} />
@@ -263,6 +317,19 @@ const footerLinks = [
     backdrop-filter: blur(18px);
   }
 
+  .section-intro {
+    border-radius: 26px;
+    padding: 1.25rem;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .section-intro h2 {
+    margin: 0.2rem 0 0;
+    letter-spacing: -0.03em;
+    font-size: clamp(1.3rem, 2vw, 2rem);
+  }
+
   .section-block {
     border-radius: 26px;
     padding: 1.25rem;
@@ -271,6 +338,39 @@ const footerLinks = [
   .stack {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .student-groups {
+    display: grid;
+    gap: 1.2rem;
+  }
+
+  .student-group {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .student-group h3 {
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-size: 1.05rem;
+  }
+
+  .student-grid {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .talk-grid {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .talk-card--featured {
+    grid-column: 1 / -1;
   }
 
   .section-header-aside {
@@ -344,27 +444,8 @@ const footerLinks = [
     font-weight: 700;
   }
 
-  .inline-link {
-    display: inline-flex;
-    margin-top: 0.6rem;
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .inline-link:hover {
-    color: var(--accent-2);
-  }
-
   .muted {
     color: var(--muted);
-  }
-
-  .link-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-    margin-top: 0.6rem;
   }
 
   @media (max-width: 980px) {
@@ -375,6 +456,14 @@ const footerLinks = [
 
     .section-header-aside {
       justify-items: start;
+    }
+
+    .student-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .talk-grid {
+      grid-template-columns: 1fr;
     }
   }
 

@@ -14,3 +14,20 @@ export const primaryNavItems = siteData.navItems
     label: item.navHeader,
     title: item.header || item.notes || item.navHeader,
   }));
+
+export function getNavItemById(id) {
+  return siteData.navItems.find((item) => item.id === id) || null;
+}
+
+export function getNavSectionText(id, fallback = {}) {
+  const item = getNavItemById(id) || {};
+
+  return {
+    kicker: item.kicker || fallback.kicker || "",
+    header: item.header || fallback.header || "",
+    intro: item.intro || fallback.intro || "",
+    summary: item.summary || fallback.summary || "",
+    trailer: item.trailer || fallback.trailer || "",
+    notes: item.notes || fallback.notes || "",
+  };
+}

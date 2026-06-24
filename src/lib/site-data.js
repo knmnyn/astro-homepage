@@ -9,6 +9,7 @@ import softwareSheet from "../generated/content-sources/software.json" with { ty
 import serviceSheet from "../generated/content-sources/service.json" with { type: "json" };
 import personalLinksSheet from "../generated/content-sources/personal-links.json" with { type: "json" };
 import { stripMetricMarker } from "./sheet-metrics.js";
+import { collectSheetUrlLinks } from "./url-links.js";
 
 function fieldValue(record, fieldName) {
   const target = stripMetricMarker(fieldName).toLowerCase();
@@ -47,6 +48,7 @@ function navItems() {
       visible: fieldValue(record, "Visible"),
       notes: fieldValue(record, "Notes"),
       summary: fieldValue(record, "Summary"),
+      intro: fieldValue(record, "Intro"),
       kicker: fieldValue(record, "Kicker"),
       trailer: fieldValue(record, "Trailer"),
     }))
@@ -56,6 +58,7 @@ function navItems() {
 function publicationItems() {
   return records(publicationsSheet).map((record) => ({
     id: fieldValue(record, "ID"),
+    section: fieldValue(record, "Section"),
     year: fieldValue(record, "Year"),
     type: fieldValue(record, "Type"),
     area: fieldValue(record, "Area"),
@@ -74,6 +77,7 @@ function publicationItems() {
     sort: fieldValue(record, "Sort"),
     notes: fieldValue(record, "Notes"),
     sourceUrl: fieldValue(record, "Source URL"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -89,6 +93,7 @@ function teachingItems() {
     section: fieldValue(record, "Section"),
     url: fieldValue(record, "URL"),
     notes: fieldValue(record, "Notes"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -97,11 +102,15 @@ function studentItems() {
     id: fieldValue(record, "ID"),
     cohort: fieldValue(record, "Cohort"),
     level: fieldValue(record, "Level"),
-    name: fieldValue(record, "Name"),
+    title: fieldValue(record, "Title"),
+    name: fieldValue(record, "Title"),
     role: fieldValue(record, "Role"),
+    avatar: fieldValue(record, "Avatar"),
+    url: fieldValue(record, "URL"),
     interests: fieldValue(record, "Research Interests"),
-    profileUrl: fieldValue(record, "Profile URL"),
+    profileUrl: fieldValue(record, "URL"),
     status: fieldValue(record, "Status"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -116,9 +125,10 @@ function talkItems() {
     location: fieldValue(record, "Location"),
     date: fieldValue(record, "Date"),
     slidesUrl: fieldValue(record, "Slides URL"),
-    videoUrl: fieldValue(record, "Video URL"),
+    videoUrl: fieldValue(record, "Video") || fieldValue(record, "Video URL"),
     notes: fieldValue(record, "Notes"),
     sourceIndex: index,
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -133,7 +143,9 @@ function grantItems() {
     sponsor: fieldValue(record, "Sponsor"),
     amount: fieldValue(record, "Amount"),
     currency: fieldValue(record, "Currency"),
+    url: fieldValue(record, "URL"),
     notes: fieldValue(record, "Notes"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -147,6 +159,7 @@ function softwareItems() {
     status: fieldValue(record, "Status"),
     tags: fieldValue(record, "Tags"),
     featured: fieldValue(record, "Featured"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -160,6 +173,7 @@ function serviceItems() {
     organization: fieldValue(record, "Organization"),
     description: fieldValue(record, "Description"),
     url: fieldValue(record, "URL"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 
@@ -171,6 +185,7 @@ function personalLinkItems() {
     description: fieldValue(record, "Description"),
     url: fieldValue(record, "URL"),
     featured: fieldValue(record, "Featured"),
+    links: collectSheetUrlLinks(record),
   }));
 }
 

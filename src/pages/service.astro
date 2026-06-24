@@ -3,11 +3,13 @@ import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
 import SectionMetrics from "../components/section-metrics.astro";
+import CardTitleLink from "../components/card-title-link.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
-import { primaryNavItems } from "../lib/site-navigation";
+import { getNavSectionText, primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
 import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
+import { renderInlineMarkdown } from "../lib/inline-markdown.js";
 
 const profile = siteData.profile;
 const serviceItems = siteData.service;
@@ -17,6 +19,7 @@ const latestService = serviceItems[0] || {};
 const featuredService = serviceItems.slice(0, 4);
 const serviceMetrics = buildSheetMetrics(siteData.sources.service);
 const serviceCountMetric = getSheetCountMetric(serviceMetrics);
+const serviceText = getNavSectionText("service", { kicker: "Service" });
 
 const navItems = primaryNavItems;
 
@@ -68,16 +71,16 @@ const footerLinks = [
     <section class="panel section-block" data-metric-scope-root="service-archive">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Service{serviceCountMetric ? ` · ${serviceCountMetric.value}` : ""}</p>
-          <h2>Featured service entries</h2>
+          <p class="section-kicker" set:html={renderInlineMarkdown(`${serviceText.kicker || ""}${serviceCountMetric ? ` · ${serviceCountMetric.value}` : ""}`)}></p>
+          <h2>{serviceText.header}</h2>
         </div>
         <div class="section-header-aside">
-          <p class="section-summary">
-            Selected highlights from the service sheet. <a class="inline-link" href={sitePath("misc/")}>Open the full archive</a>.
-          </p>
+          {serviceText.summary && <p class="section-summary" set:html={renderInlineMarkdown(serviceText.summary)}></p>}
           <SectionMetrics metrics={serviceMetrics} scope="service-archive" />
         </div>
       </div>
+
+      {serviceText.intro && <span class="section-copy section-copy--intro" set:html={renderInlineMarkdown(serviceText.intro)}></span>}
 
       <div class="stack">
         {featuredService.map((item, index) => (
@@ -86,16 +89,13 @@ const footerLinks = [
               {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
               {item.category ? ` · ${item.category}` : ""}
             </p>
-            <h3>{[item.role, item.organization].filter(Boolean).join(" · ")}</h3>
+            <CardTitleLink title={[item.role, item.organization].filter(Boolean).join(" · ") || "Service"} url={item.url || ""} />
             <p class="muted">{item.description}</p>
-            {item.url && (
-              <a class="inline-link" href={item.url} rel="noreferrer">
-                Related site
-              </a>
-            )}
           </article>
         ))}
       </div>
+
+      {serviceText.trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(serviceText.trailer)}></span>}
     </section>
 
     <SiteFooter links={footerLinks} />
@@ -177,18 +177,6 @@ const footerLinks = [
     margin: 0;
     color: var(--muted);
     line-height: 1.6;
-  }
-
-  .inline-link {
-    display: inline-flex;
-    margin-top: 0.6rem;
-    color: var(--accent);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .inline-link:hover {
-    color: var(--accent-2);
   }
 
   .muted {
