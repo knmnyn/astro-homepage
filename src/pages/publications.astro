@@ -5,6 +5,7 @@ import SectionNav from "../components/section-nav.astro";
 import PublicationList from "../components/publication-list.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
+import { sitePath } from "../lib/site-path";
 
 const profile = siteData.profile;
 const publicationAreas = [...new Set(siteData.publications.map((item) => item.area).filter(Boolean))];
@@ -13,7 +14,7 @@ const archivePublications = siteData.publications;
 
 const navItems = [
   {
-    href: "/",
+    href: sitePath(""),
     label: "Home",
     title: "Return to the homepage",
   },
@@ -31,7 +32,7 @@ const navItems = [
 
 const footerLinks = [
   {
-    href: "/",
+    href: sitePath(""),
     label: "Back home",
     title: "Return to the homepage",
   },

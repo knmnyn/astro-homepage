@@ -123,6 +123,55 @@ async function writeBuildCache(cache) {
 }
 
 /**
+ * Convert a source page path into the expected Astro build output path.
+ */
+function pageSourceToOutputPath(pagePath, pagesDir, distDir) {
+  const relativePath = path.relative(pagesDir, pagePath);
+  const pageExt = path.extname(relativePath);
+  if (pageExt !== ".astro" && pageExt !== ".md" && pageExt !== ".mdx") {
+    return "";
+  }
+
+  if (relativePath.includes("[")) {
+    return "";
+  }
+
+  const withoutExt = relativePath.slice(0, -pageExt.length);
+  const segments = withoutExt.split(path.sep).filter(Boolean);
+  const lastSegment = segments[segments.length - 1] || "";
+  const outputSegments = lastSegment === "index" ? segments.slice(0, -1) : segments;
+  return path.join(distDir, ...outputSegments, "index.html");
+}
+
+/**
+ * Ensure each static page source has a generated HTML file in dist/.
+ */
+async function verifyBuiltPages() {
+  const pagesDir = resolvePath(path.join("src", "pages"));
+  const distDir = resolvePath("dist");
+  const pagesDirStat = await fs.stat(pagesDir).catch(() => null);
+
+  if (!pagesDirStat?.isDirectory?.()) {
+    return [];
+  }
+
+  const missingOutputs = [];
+  const pageFiles = await listFiles(pagesDir);
+
+  for (const pageFile of pageFiles) {
+    const outputPath = pageSourceToOutputPath(pageFile, pagesDir, distDir);
+    if (!outputPath) continue;
+
+    const outputStat = await fs.stat(outputPath).catch(() => null);
+    if (!outputStat?.isFile?.()) {
+      missingOutputs.push(path.relative(repoRoot, outputPath));
+    }
+  }
+
+  return missingOutputs;
+}
+
+/**
  * Hash the site inputs that affect Astro build output.
  */
 async function hashBuildInputs() {
@@ -168,7 +217,12 @@ async function buildIfNeeded(forceBuild = false) {
   const canSkipBuild = !forceBuild && cache.input_hash === inputHash && distStat?.isDirectory?.();
 
   if (canSkipBuild) {
-    return { built: false, inputHash };
+    const missingOutputs = await verifyBuiltPages();
+    if (missingOutputs.length === 0) {
+      return { built: false, inputHash };
+    }
+
+    console.warn(`Build cache was valid, but these outputs were missing: ${missingOutputs.join(", ")}. Rebuilding.`);
   }
 
   await new Promise((resolve, reject) => {
@@ -186,6 +240,11 @@ async function buildIfNeeded(forceBuild = false) {
       }
     });
   });
+
+  const missingOutputs = await verifyBuiltPages();
+  if (missingOutputs.length > 0) {
+    throw new Error(`Astro build completed, but these page outputs are missing: ${missingOutputs.join(", ")}`);
+  }
 
   await writeBuildCache({
     input_hash: inputHash,

@@ -1,0 +1,218 @@
+---
+import Layout from "../layouts/Layout.astro";
+import HeroSection from "../components/hero-section.astro";
+import SectionNav from "../components/section-nav.astro";
+import SiteFooter from "../components/site-footer.astro";
+import { siteData } from "../lib/site-data";
+import { sitePath } from "../lib/site-path";
+
+const profile = siteData.profile;
+const teachingItems = siteData.teaching;
+const teachingYears = [...new Set(teachingItems.map((item) => item.academicYear).filter(Boolean))];
+const latestTeaching = teachingItems[0] || {};
+
+const navItems = [
+  {
+    href: sitePath(""),
+    label: "Home",
+    title: "Return to the homepage",
+  },
+  {
+    href: sitePath("publications/"),
+    label: "Publications",
+    title: "Browse the publications archive",
+  },
+  {
+    href: sitePath("service/"),
+    label: "Service",
+    title: "Browse the service archive",
+  },
+];
+
+const footerLinks = [
+  {
+    href: sitePath(""),
+    label: "Back home",
+    title: "Return to the homepage",
+  },
+  {
+    href: sitePath("service/"),
+    label: "Service archive",
+    title: "Browse the service page",
+  },
+];
+---
+
+<Layout
+  title={`${profile.name || "Min-Yen Kan"} | Teaching`}
+  description={`Teaching archive for ${profile.name || "Min-Yen Kan"}, powered by Astro and Google Sheets content.`}
+>
+  <main class="page-shell">
+    <HeroSection
+      eyebrow="Teaching archive"
+      title={profile.name || "Min-Yen Kan"}
+      headline="A complete list of teaching and facilitation entries from the sheet."
+      tags={[
+        `${teachingItems.length} teaching entries`,
+        `${teachingYears.length || "No"} academic years`,
+        profile.title,
+      ].filter(Boolean)}
+      stats={[
+        {
+          label: "Latest entry",
+          value: latestTeaching.academicYear || "n.d.",
+          text: latestTeaching.courseTitle || "Teaching record",
+        },
+        {
+          label: "Sections",
+          value: latestTeaching.section || "—",
+          text: latestTeaching.role || "Role not specified",
+          accent: true,
+        },
+      ]}
+    />
+
+    <SectionNav items={navItems} />
+
+    <section class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Teaching</p>
+          <h2>Full teaching archive</h2>
+        </div>
+        <p class="section-summary">All teaching sheet entries are listed here.</p>
+      </div>
+
+      <div class="stack">
+        {teachingItems.map((item) => (
+          <article class="list-item">
+            <p class="card-topline">
+              {item.academicYear || "n.d."}
+              {item.term ? ` · ${item.term}` : ""}
+            </p>
+            <h3>
+              {item.courseCode ? `${item.courseCode} ` : ""}
+              {item.courseTitle || "Course"}
+            </h3>
+            <p>{[item.role, item.level, item.section].filter(Boolean).join(" · ")}</p>
+            {item.notes && <p class="muted">{item.notes}</p>}
+            {item.url && (
+              <a class="inline-link" href={item.url} rel="noreferrer">
+                Course page
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <SiteFooter links={footerLinks} />
+  </main>
+</Layout>
+
+<style>
+  .page-shell {
+    width: min(1140px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  .section-block {
+    border-radius: 26px;
+    padding: 1.25rem;
+  }
+
+  .stack {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .list-item {
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--panel-contrast);
+    padding: 1rem 1rem 0.95rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .list-item h3 {
+    margin: 0.35rem 0 0.3rem;
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+
+  .card-topline,
+  .section-kicker {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    margin: 0.3rem 0 0;
+    letter-spacing: -0.03em;
+    font-size: clamp(1.3rem, 2vw, 2rem);
+  }
+
+  .section-summary,
+  .list-item p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .inline-link {
+    display: inline-flex;
+    margin-top: 0.6rem;
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .inline-link:hover {
+    color: var(--accent-2);
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  @media (max-width: 980px) {
+    .section-header {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .page-shell {
+      width: min(100% - 1rem, 1140px);
+      padding-top: 1rem;
+    }
+
+    .section-block {
+      border-radius: 20px;
+      padding: 1rem;
+    }
+  }
+</style>

@@ -5,6 +5,7 @@ import SectionNav from "../components/section-nav.astro";
 import PublicationList from "../components/publication-list.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
+import { sitePath } from "../lib/site-path";
 
 const profile = siteData.profile;
 
@@ -37,23 +38,31 @@ const featuredGrants = siteData.grants.slice(0, 4);
 const featuredSoftware = siteData.software.filter((item) => item.featured === "yes" || item.featured === "Yes");
 const featuredService = siteData.service.slice(0, 4);
 const featuredLinks = siteData.personalLinks.filter((item) => item.featured === "yes" || item.featured === "Yes");
+const sectionRoutes = {
+  publications: sitePath("publications/"),
+  teaching: sitePath("teaching/"),
+  service: sitePath("service/"),
+};
+const sectionTitles = {
+  publications: "Full publications archive",
+  teaching: "Full teaching archive",
+  service: "Full service archive",
+};
 const sectionNavItems = [
   ...navItems.map((item) => ({
     href:
-      item.id === "publications"
-        ? "/publications/"
-        : `#${item.anchor}`,
+      sectionRoutes[item.id] || `#${item.anchor}`,
     label: item.label,
     title:
-      item.id === "publications"
-        ? "Full publications archive"
+      sectionTitles[item.id]
+        ? sectionTitles[item.id]
         : item.notes,
   })),
 ];
 
 const footerLinks = [
   {
-    href: "/publications/",
+    href: sitePath("publications/"),
     label: "Publications archive",
     title: "Browse the full publications page",
   },
@@ -133,7 +142,9 @@ const contactItems = [
           <p class="section-kicker">Teaching</p>
           <h2>Courses and facilitation</h2>
         </div>
-        <p class="section-summary">Latest entries from the teaching sheet.</p>
+        <p class="section-summary">
+          Latest entries from the teaching sheet. <a class="inline-link" href={sitePath("teaching/")}>Full teaching page</a>.
+        </p>
       </div>
       <div class="card-grid">
         {currentTeaching.map((item) => (
@@ -261,6 +272,9 @@ const contactItems = [
             <p class="section-kicker">Service</p>
             <h2>Professional and scholarly service</h2>
           </div>
+          <p class="section-summary">
+            Selected highlights from the service sheet. <a class="inline-link" href={sitePath("service/")}>Full service page</a>.
+          </p>
         </div>
         <div class="stack">
           {featuredService.map((item) => (
