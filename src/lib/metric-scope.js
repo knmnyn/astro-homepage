@@ -66,6 +66,24 @@ function parseSortableNumber(value) {
   return amount * (multipliers[suffix] || 1);
 }
 
+function parseSortableDate(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) {
+    return null;
+  }
+
+  if (/^\d{4}$/.test(raw)) {
+    return Date.UTC(Number(raw), 0, 1);
+  }
+
+  if (!/[a-zA-Z]/.test(raw) && !/[/-]/.test(raw) && !/,/.test(raw)) {
+    return null;
+  }
+
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function compareValues(leftValue, rightValue) {
   const left = String(leftValue ?? "").trim();
   const right = String(rightValue ?? "").trim();
@@ -78,6 +96,15 @@ function compareValues(leftValue, rightValue) {
   const rightNumber = parseSortableNumber(right);
   if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) {
     return leftNumber - rightNumber;
+  }
+
+  const leftDate = parseSortableDate(left);
+  const rightDate = parseSortableDate(right);
+  if (Number.isFinite(leftDate) && Number.isFinite(rightDate)) {
+    return leftDate - rightDate;
+  }
+  if (Number.isFinite(leftDate) !== Number.isFinite(rightDate)) {
+    return Number.isFinite(leftDate) ? -1 : 1;
   }
 
   return left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });

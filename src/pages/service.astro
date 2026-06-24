@@ -27,8 +27,8 @@ const footerLinks = [
     title: "Return to the homepage",
   },
   {
-    href: sitePath("miscellaneous/"),
-    label: "Miscellaneous archive",
+    href: sitePath("misc/"),
+    label: "Misc archive",
     title: "Browse the service and personal link archive",
   },
 ];
@@ -42,7 +42,7 @@ const footerLinks = [
     <HeroSection
       eyebrow="Service overview"
       title={profile.name || "Min-Yen Kan"}
-      headline="A compact service overview. The full archive now lives on the miscellaneous page."
+      headline="A compact service overview. The full archive now lives on the misc page."
       tags={[
         `${serviceItems.length} service entries`,
         `${serviceCategories.length || "No"} categories`,
@@ -73,7 +73,7 @@ const footerLinks = [
         </div>
         <div class="section-header-aside">
           <p class="section-summary">
-            Selected highlights from the service sheet. <a class="inline-link" href={sitePath("miscellaneous/")}>Open the full archive</a>.
+            Selected highlights from the service sheet. <a class="inline-link" href={sitePath("misc/")}>Open the full archive</a>.
           </p>
           <SectionMetrics metrics={serviceMetrics} scope="service-archive" />
         </div>

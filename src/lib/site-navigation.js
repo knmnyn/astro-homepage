@@ -1,29 +1,16 @@
-import { sitePath } from "./site-path";
+import { siteData } from "./site-data.js";
+import { sitePath } from "./site-path.js";
 
-export const primaryNavItems = [
-  {
-    href: sitePath("research/"),
-    label: "Research",
-    title: "Browse the research page",
-  },
-  {
-    href: sitePath("teaching/"),
-    label: "Teaching",
-    title: "Browse the teaching archive",
-  },
-  {
-    href: sitePath("publications/"),
-    label: "Publications",
-    title: "Browse the publications archive",
-  },
-  {
-    href: sitePath("service/"),
-    label: "Service",
-    title: "Browse the service overview",
-  },
-  {
-    href: sitePath("miscellaneous/"),
-    label: "Miscellaneous",
-    title: "Browse the miscellaneous archive",
-  },
-];
+function orderValue(value) {
+  const parsed = Number.parseFloat(String(value ?? "").trim());
+  return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+}
+
+export const primaryNavItems = siteData.navItems
+  .filter((item) => String(item.visible ?? "").trim().toUpperCase() === "TRUE" && item.navHeader && item.path)
+  .sort((left, right) => orderValue(left.order) - orderValue(right.order))
+  .map((item) => ({
+    href: sitePath(String(item.path ?? "").trim().replace(/^\/+/, "")),
+    label: item.navHeader,
+    title: item.header || item.notes || item.navHeader,
+  }));

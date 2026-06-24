@@ -1,14 +1,14 @@
-import profileSheet from "../generated/content-sources/profile.json";
-import navSheet from "../generated/content-sources/nav.json";
-import publicationsSheet from "../generated/content-sources/publications.json";
-import teachingSheet from "../generated/content-sources/teaching.json";
-import studentsSheet from "../generated/content-sources/students.json";
-import talksSheet from "../generated/content-sources/talks.json";
-import grantsSheet from "../generated/content-sources/grants.json";
-import softwareSheet from "../generated/content-sources/software.json";
-import serviceSheet from "../generated/content-sources/service.json";
-import personalLinksSheet from "../generated/content-sources/personal-links.json";
-import { stripMetricMarker } from "./sheet-metrics";
+import profileSheet from "../generated/content-sources/profile.json" with { type: "json" };
+import navSheet from "../generated/content-sources/nav.json" with { type: "json" };
+import publicationsSheet from "../generated/content-sources/publications.json" with { type: "json" };
+import teachingSheet from "../generated/content-sources/teaching.json" with { type: "json" };
+import studentsSheet from "../generated/content-sources/students.json" with { type: "json" };
+import talksSheet from "../generated/content-sources/talks.json" with { type: "json" };
+import grantsSheet from "../generated/content-sources/grants.json" with { type: "json" };
+import softwareSheet from "../generated/content-sources/software.json" with { type: "json" };
+import serviceSheet from "../generated/content-sources/service.json" with { type: "json" };
+import personalLinksSheet from "../generated/content-sources/personal-links.json" with { type: "json" };
+import { stripMetricMarker } from "./sheet-metrics.js";
 
 function fieldValue(record, fieldName) {
   const target = stripMetricMarker(fieldName).toLowerCase();
@@ -40,12 +40,17 @@ function navItems() {
   return records(navSheet)
     .map((record) => ({
       id: fieldValue(record, "ID"),
-      label: fieldValue(record, "Label"),
+      navHeader: fieldValue(record, "Nav Header"),
+      header: fieldValue(record, "Header"),
+      order: fieldValue(record, "Order"),
       path: fieldValue(record, "Slug / Path"),
       visible: fieldValue(record, "Visible"),
       notes: fieldValue(record, "Notes"),
+      summary: fieldValue(record, "Summary"),
+      kicker: fieldValue(record, "Kicker"),
+      trailer: fieldValue(record, "Trailer"),
     }))
-    .filter((item) => item.id && item.visible !== "no");
+    .filter((item) => item.id);
 }
 
 function publicationItems() {
@@ -101,16 +106,19 @@ function studentItems() {
 }
 
 function talkItems() {
-  return records(talksSheet).map((record) => ({
+  return records(talksSheet).map((record, index) => ({
     id: fieldValue(record, "ID"),
-    date: fieldValue(record, "Date"),
-    year: fieldValue(record, "Year"),
-    type: fieldValue(record, "Type"),
+    sort: fieldValue(record, "Sort"),
+    role: fieldValue(record, "Role"),
+    recordType: fieldValue(record, "Record Type"),
     title: fieldValue(record, "Title"),
     event: fieldValue(record, "Event"),
-    venue: fieldValue(record, "Venue"),
     location: fieldValue(record, "Location"),
+    date: fieldValue(record, "Date"),
+    slidesUrl: fieldValue(record, "Slides URL"),
+    videoUrl: fieldValue(record, "Video URL"),
     notes: fieldValue(record, "Notes"),
+    sourceIndex: index,
   }));
 }
 

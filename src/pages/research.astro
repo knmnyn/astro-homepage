@@ -7,6 +7,7 @@ import SectionMetrics from "../components/section-metrics.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
 import { primaryNavItems } from "../lib/site-navigation";
+import { sortTalkItems } from "../lib/talk-order.js";
 import { sitePath } from "../lib/site-path";
 import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
 
@@ -23,7 +24,8 @@ const softwareTags = [...new Set(softwareItems.flatMap((item) => String(item.tag
 const featuredPublications = siteData.publications.slice(0, 8);
 const latestSoftware = softwareItems[0] || {};
 const latestStudent = studentItems[0] || {};
-const latestTalk = talkItems[0] || {};
+const sortedTalkItems = sortTalkItems(talkItems);
+const latestTalk = sortedTalkItems[0] || {};
 const latestGrant = grantItems[0] || {};
 const softwareMetrics = buildSheetMetrics(siteData.sources.software);
 const studentMetrics = buildSheetMetrics(siteData.sources.students);
@@ -41,8 +43,8 @@ const footerLinks = [
     title: "Browse the full publications page",
   },
   {
-    href: sitePath("miscellaneous/"),
-    label: "Miscellaneous archive",
+    href: sitePath("misc/"),
+    label: "Misc archive",
     title: "Browse the service and personal link archive",
   },
 ];
@@ -187,8 +189,18 @@ const footerLinks = [
       </div>
 
       <div class="stack">
-        {talkItems.map((item, index) => (
-          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(talkRecords[index], talkMetrics))}>
+        {sortedTalkItems.map((item, index) => (
+          <article
+            class="list-item"
+            data-metric-card
+            data-metric-values={JSON.stringify(
+              buildMetricCardData(talkRecords[item.sourceIndex] ?? talkRecords[index] ?? {}, talkMetrics),
+            )}
+          >
+            <div class="list-meta">
+              {item.role && <span>{item.role}</span>}
+              {item.recordType && <span>{item.recordType}</span>}
+            </div>
             <p class="card-topline">
               {item.date || item.year || "n.d."}
               {item.event ? ` · ${item.event}` : ""}

@@ -39,6 +39,7 @@ What is here now:
 - an Astro wrapper for build and preview commands that keeps exported asset URLs correct
 - a gitignored HTML pipeline log that can be copied to the serving destination
 - a spreadsheet template for authoring the homepage content
+- a sheet-driven shared nav, where `Nav Header` controls the visible bar text and `Header` stays the canonical page title
 - a compact theme switch and font-size control in the shared navigation
 - per-section Astro routes wired to the generated sheet data
 
@@ -60,7 +61,7 @@ The homepage is designed as a classic academic profile site with a clear informa
   - Publications
   - Software
   - Service
-  - Miscellaneous / Personal pages
+  - Misc / Personal pages
 - Content sections
   - overview and bio
   - student roster
@@ -90,7 +91,7 @@ The homepage is designed as a classic academic profile site with a clear informa
 - `/teaching` - current and past courses
 - `/publications` - publication archive
 - `/service` - committee and editorial service
-- `/miscellaneous` - software, personal links, and other archive material
+- `/misc` - software, personal links, and other archive material
 
 ## Data Pipeline
 
@@ -258,16 +259,111 @@ Tabs currently defined:
 
 Each tab includes example rows based on the homepage content so the sheet is immediately usable.
 
-### Sheet Markers
+## Schema Reference
 
-The generated sheets use a lightweight header marker vocabulary:
+The generated sheets share a few conventions:
 
-- `[#]` - metric column used for filter chips that show `label + count`
-- `[|]` - sortable column exposed as an ascending/descending sort chip
-- `[!]` - pinned row content
-- `[*]` - featured row content
+- `[#]` marks a metric-capable column
+- `[|]` marks a sortable column
+- `[!]` marks pinned row content
+- `[*]` marks featured row content
 
-The site strips these markers when reading values, so the label text stays clean in the UI while the markers still guide generation and presentation. In the research archive, metric group headings are omitted and the filter chips display both the label and count directly; sort chips keep the field label and toggle direction when pressed. Sort values are compared numerically when possible, including decimal values and magnitude suffixes like `K`, `M`, and `B`, with optional spaces before the suffix. Row-level `[!]` and `[*]` markers are preserved in the content model for presentation, but they are not treated as column markers.
+The site strips these markers when reading values, so the visible label text stays clean in the UI while the markers still guide generation and presentation.
+
+### Shared Row Rules
+
+- `ID`
+  - stable row identifier for the content model
+- `Sort`
+  - optional override for ordering when a component supports sorted rendering
+- `Notes`
+  - freeform supporting text
+- `URL`-style fields
+  - any field ending in `URL` is treated as a link when the component supports it
+
+### Nav
+
+The nav sheet drives the shared navigation bar.
+
+- `Nav Header`
+  - visible label used in the bar
+- `Header`
+  - canonical page title or section name
+- `Slug / Path`
+  - page route path used for links
+- `Order`
+  - display order in the navigation bar
+- `Visible`
+  - `TRUE` rows are shown, `FALSE` rows are hidden
+- `Summary`, `Kicker`, `Trailer`
+  - optional markdown-capable text fields for future nav presentation
+
+### Research Talks
+
+The talks sheet feeds the research archive and the homepage talk summary.
+
+- `[#]ID`
+  - stable row identifier
+- `Sort`
+  - optional override for talk ordering
+- `[#]Role`
+  - talk role or presentation type
+- `[#]Record Type`
+  - `Local` or `International`
+- `Title`
+  - talk title
+- `Event`
+  - event or host context
+- `Location`
+  - location text shown in the UI
+- `[|]Date`
+  - sortable date field
+- `Slides URL`
+  - optional slide link
+- `Video URL`
+  - optional embed link for a video player
+- `Notes`
+  - optional supporting note
+
+Default talk rendering keeps sheet row order unless `Sort` is populated. The research page applies that override; the base data layer should stay close to the raw watcher output.
+
+### Research Grants
+
+The grants sheet powers grant summaries and the research archive.
+
+- `Start Year`, `End Year`
+  - grant span
+- `Record Type`
+  - grant category or participation type
+- `Title`
+  - grant title
+- `Role`
+  - your role in the grant
+- `Sponsor`
+  - funding source
+- `Amount`, `Currency`
+  - optional amount display
+- `Notes`
+  - supporting text
+
+### Other Content Sheets
+
+The remaining sheets follow the same general pattern:
+
+- `publications`
+  - bibliographic records with title, venue, authors, year, and link fields
+- `teaching`
+  - course history with academic year, term, course code, role, section, and notes
+- `students`
+  - supervision records with cohort, level, name, role, interests, and status
+- `software`
+  - software/project records with name, description, repository/docs links, status, tags, and featured flag
+- `service`
+  - committee and editorial service records with year span, category, role, organization, description, and URL
+- `personal links`
+  - personal archive links with label, category, description, URL, and featured flag
+
+The site strips the marker prefixes on read, so the component code can work with clean field names while the spreadsheet keeps the richer authoring hints. Sort chips compare numbers naturally, including decimal values and magnitude suffixes like `K`, `M`, and `B`, and also compare date-like values chronologically when a field contains dates such as `24 Aug 2018` or `2018-08-24`.
 
 ## Project Structure
 

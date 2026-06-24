@@ -240,6 +240,23 @@ test("initMetricScope accepts optional spaces before magnitude suffixes", () => 
   assert.deepEqual(scopeRoot.cardContainer.order, [secondCard, firstCard, thirdCard]);
 });
 
+test("initMetricScope sorts date-like values chronologically", () => {
+  const sortButton = createSortButton("date", "Date");
+  const firstCard = createCard({ date: "16 Sep 2025" });
+  const secondCard = createCard({ date: "24 Aug 2018" });
+  const thirdCard = createCard({ date: "8 Jan 2025" });
+  const fourthCard = createCard({ date: "" });
+  const scopeRoot = createScopeRoot({ buttons: [], sortButtons: [sortButton], cards: [firstCard, secondCard, thirdCard, fourthCard] });
+
+  initMetricScope(scopeRoot);
+
+  sortButton.click();
+  assert.deepEqual(scopeRoot.cardContainer.order, [secondCard, thirdCard, firstCard, fourthCard]);
+
+  sortButton.click();
+  assert.deepEqual(scopeRoot.cardContainer.order, [firstCard, thirdCard, secondCard, fourthCard]);
+});
+
 test("initAllMetricScopes keeps sections isolated", () => {
   const firstButton = createButton("status", "active");
   const secondButton = createButton("status", "draft");
