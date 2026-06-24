@@ -9,70 +9,67 @@ import { sitePath } from "../lib/site-path";
 
 const profile = siteData.profile;
 const serviceItems = siteData.service;
+const personalLinks = siteData.personalLinks;
 const serviceCategories = [...new Set(serviceItems.map((item) => item.category).filter(Boolean))];
+const personalCategories = [...new Set(personalLinks.map((item) => item.category).filter(Boolean))];
 const latestService = serviceItems[0] || {};
-const featuredService = serviceItems.slice(0, 4);
-
-const navItems = primaryNavItems;
 
 const footerLinks = [
   {
-    href: sitePath(""),
-    label: "Back home",
-    title: "Return to the homepage",
+    href: sitePath("service/"),
+    label: "Service overview",
+    title: "Browse the service summary page",
   },
   {
-    href: sitePath("miscellaneous/"),
-    label: "Miscellaneous archive",
-    title: "Browse the service and personal link archive",
+    href: sitePath("research/"),
+    label: "Research page",
+    title: "Browse the research overview",
   },
 ];
 ---
 
 <Layout
-  title={`${profile.name || "Min-Yen Kan"} | Service`}
-  description={`Service archive for ${profile.name || "Min-Yen Kan"}, powered by Astro and Google Sheets content.`}
+  title={`${profile.name || "Min-Yen Kan"} | Miscellaneous`}
+  description={`Miscellaneous archive for ${profile.name || "Min-Yen Kan"}, powered by Astro and Google Sheets content.`}
 >
   <main class="page-shell">
     <HeroSection
-      eyebrow="Service overview"
+      eyebrow="Miscellaneous archive"
       title={profile.name || "Min-Yen Kan"}
-      headline="A compact service overview. The full archive now lives on the miscellaneous page."
+      headline="Service records and the old personal links now live together here."
       tags={[
         `${serviceItems.length} service entries`,
-        `${serviceCategories.length || "No"} categories`,
+        `${personalLinks.length} personal links`,
         profile.title,
       ].filter(Boolean)}
       stats={[
         {
-          label: "Latest entry",
-          value: latestService.startYear || "n.d.",
-          text: latestService.organization || "Service record",
+          label: "Service entries",
+          value: serviceItems.length,
+          text: latestService.organization || "No service records yet",
         },
         {
-          label: "Category",
-          value: latestService.category || "—",
-          text: latestService.role || "Role not specified",
+          label: "Categories",
+          value: serviceCategories.length + personalCategories.length || "—",
+          text: [...serviceCategories, ...personalCategories].join(" · ") || "Categories appear here as the sheet grows.",
           accent: true,
         },
       ]}
     />
 
-    <SectionNav items={navItems} />
+    <SectionNav items={primaryNavItems} />
 
-    <section class="panel section-block">
+    <section id="service" class="panel section-block">
       <div class="section-header">
         <div>
           <p class="section-kicker">Service</p>
-          <h2>Featured service entries</h2>
+          <h2>Full service archive</h2>
         </div>
-        <p class="section-summary">
-          Selected highlights from the service sheet. <a class="inline-link" href={sitePath("miscellaneous/")}>Open the full archive</a>.
-        </p>
+        <p class="section-summary">The comprehensive service listing now lives in the miscellaneous area.</p>
       </div>
 
       <div class="stack">
-        {featuredService.map((item) => (
+        {serviceItems.map((item) => (
           <article class="list-item">
             <p class="card-topline">
               {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
@@ -85,6 +82,34 @@ const footerLinks = [
                 Related site
               </a>
             )}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="personal" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Miscellaneous</p>
+          <h2>Personal links</h2>
+        </div>
+        <p class="section-summary">The old personal page links are grouped here for easy browsing.</p>
+      </div>
+
+      <div class="card-grid">
+        {personalLinks.map((item) => (
+          <article class="info-card">
+            <p class="card-topline">{item.category || "link"}</p>
+            <h3>
+              {item.url ? (
+                <a href={item.url} rel="noreferrer">
+                  {item.label || "Link"}
+                </a>
+              ) : (
+                item.label || "Link"
+              )}
+            </h3>
+            <p>{item.description}</p>
           </article>
         ))}
       </div>
@@ -115,12 +140,18 @@ const footerLinks = [
     padding: 1.25rem;
   }
 
-  .stack {
+  .stack,
+  .card-grid {
     display: grid;
     gap: 0.85rem;
   }
 
-  .list-item {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .list-item,
+  .info-card {
     border-radius: 20px;
     border: 1px solid var(--line);
     background: var(--panel-contrast);
@@ -128,7 +159,12 @@ const footerLinks = [
     box-shadow: var(--shadow-soft);
   }
 
-  .list-item h3 {
+  .info-card {
+    padding: 0.9rem 0.95rem;
+  }
+
+  .list-item h3,
+  .info-card h3 {
     margin: 0.35rem 0 0.3rem;
     font-size: 1.02rem;
     line-height: 1.35;
@@ -159,7 +195,8 @@ const footerLinks = [
   }
 
   .section-summary,
-  .list-item p {
+  .list-item p,
+  .info-card p {
     margin: 0;
     color: var(--muted);
     line-height: 1.6;
@@ -185,6 +222,10 @@ const footerLinks = [
     .section-header {
       align-items: start;
       flex-direction: column;
+    }
+
+    .card-grid {
+      grid-template-columns: 1fr;
     }
   }
 

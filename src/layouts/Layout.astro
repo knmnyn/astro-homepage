@@ -20,6 +20,7 @@ const baseUrl = import.meta.env.BASE_URL;
 		<script is:inline>
 			(() => {
 				const storageKey = "astro-homepage-theme";
+				const fontScaleKey = "astro-homepage-font-scale";
 				const root = document.documentElement;
 				const media = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -29,6 +30,15 @@ const baseUrl = import.meta.env.BASE_URL;
 						return value === "light" || value === "dark" || value === "auto" ? value : "auto";
 					} catch {
 						return "auto";
+					}
+				};
+
+				const getStoredFontScale = () => {
+					try {
+						const value = window.localStorage.getItem(fontScaleKey);
+						return value === "80" || value === "100" || value === "120" ? value : "100";
+					} catch {
+						return "100";
 					}
 				};
 
@@ -45,8 +55,19 @@ const baseUrl = import.meta.env.BASE_URL;
 					}
 				};
 
+				const applyFontScale = (choice) => {
+					const scale = getStoredFontScale();
+					const nextScale = choice === "80" || choice === "100" || choice === "120" ? choice : scale;
+					root.dataset.fontScale = nextScale;
+					root.style.fontSize = `${nextScale}%`;
+					for (const select of document.querySelectorAll("[data-font-scale-choice]")) {
+						select.value = nextScale;
+					}
+				};
+
 				const storedChoice = getStoredChoice();
 				applyTheme(storedChoice);
+				applyFontScale(getStoredFontScale());
 
 				window.addEventListener("DOMContentLoaded", () => {
 					for (const button of document.querySelectorAll("[data-theme-choice]")) {
@@ -61,7 +82,20 @@ const baseUrl = import.meta.env.BASE_URL;
 						});
 					}
 
+					for (const select of document.querySelectorAll("[data-font-scale-choice]")) {
+						select.addEventListener("change", () => {
+							const choice = select.value;
+							try {
+								window.localStorage.setItem(fontScaleKey, choice);
+							} catch {
+								// Ignore storage failures and keep the interaction functional.
+							}
+							applyFontScale(choice);
+						});
+					}
+
 					applyTheme(getStoredChoice());
+					applyFontScale(getStoredFontScale());
 				});
 
 				media.addEventListener("change", () => {
@@ -80,6 +114,10 @@ const baseUrl = import.meta.env.BASE_URL;
 <style>
 	:root {
 		color-scheme: light;
+		--nav-panel: rgba(255, 255, 255, 0.92);
+		--nav-border: rgba(0, 57, 166, 0.18);
+		--nav-shadow: 0 18px 40px rgba(23, 32, 42, 0.12);
+		--nav-chip: rgba(255, 255, 255, 0.76);
 		--bg: #f3f0ea;
 		--bg-alt: #f8f4ee;
 		--bg-accent: rgba(0, 57, 166, 0.08);
@@ -105,6 +143,10 @@ const baseUrl = import.meta.env.BASE_URL;
 
 	:root[data-theme="dark"] {
 		color-scheme: dark;
+		--nav-panel: rgba(10, 17, 29, 0.92);
+		--nav-border: rgba(142, 180, 255, 0.22);
+		--nav-shadow: 0 18px 44px rgba(1, 8, 18, 0.48);
+		--nav-chip: rgba(14, 23, 39, 0.84);
 		--bg: #09111d;
 		--bg-alt: #0e1727;
 		--bg-accent: rgba(0, 57, 166, 0.22);
@@ -133,6 +175,8 @@ const baseUrl = import.meta.env.BASE_URL;
 		margin: 0;
 		width: 100%;
 		min-height: 100%;
+		box-sizing: border-box;
+		font-size: 100%;
 		background:
 			radial-gradient(circle at top left, var(--bg-accent-2), transparent 28%),
 			radial-gradient(circle at top right, var(--bg-accent), transparent 32%),
@@ -140,6 +184,10 @@ const baseUrl = import.meta.env.BASE_URL;
 		color: var(--text);
 		font-family:
 			"IBM Plex Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+	}
+
+	body {
+		padding-top: 5.4rem;
 	}
 
 	a {
@@ -155,8 +203,18 @@ const baseUrl = import.meta.env.BASE_URL;
 		color: var(--text);
 	}
 
+	:where(.hero, .panel, .section-block, .section-intro, .publication-list) {
+		scroll-margin-top: 6.5rem;
+	}
+
 	:focus-visible {
 		outline: 2px solid var(--accent-2);
 		outline-offset: 3px;
+	}
+
+	@media (max-width: 720px) {
+		body {
+			padding-top: 4.9rem;
+		}
 	}
 </style>

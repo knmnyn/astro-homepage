@@ -4,6 +4,7 @@ import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
+import { primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
 
 const profile = siteData.profile;
@@ -11,23 +12,7 @@ const teachingItems = siteData.teaching;
 const teachingYears = [...new Set(teachingItems.map((item) => item.academicYear).filter(Boolean))];
 const latestTeaching = teachingItems[0] || {};
 
-const navItems = [
-  {
-    href: sitePath(""),
-    label: "Home",
-    title: "Return to the homepage",
-  },
-  {
-    href: sitePath("publications/"),
-    label: "Publications",
-    title: "Browse the publications archive",
-  },
-  {
-    href: sitePath("service/"),
-    label: "Service",
-    title: "Browse the service archive",
-  },
-];
+const navItems = primaryNavItems;
 
 const footerLinks = [
   {
@@ -36,9 +21,9 @@ const footerLinks = [
     title: "Return to the homepage",
   },
   {
-    href: sitePath("service/"),
-    label: "Service archive",
-    title: "Browse the service page",
+    href: sitePath("miscellaneous/"),
+    label: "Miscellaneous archive",
+    title: "Browse the service and personal link archive",
   },
 ];
 ---

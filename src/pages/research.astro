@@ -1,0 +1,344 @@
+---
+import Layout from "../layouts/Layout.astro";
+import HeroSection from "../components/hero-section.astro";
+import SectionNav from "../components/section-nav.astro";
+import PublicationList from "../components/publication-list.astro";
+import SiteFooter from "../components/site-footer.astro";
+import { siteData } from "../lib/site-data";
+import { primaryNavItems } from "../lib/site-navigation";
+import { sitePath } from "../lib/site-path";
+
+const profile = siteData.profile;
+const softwareItems = siteData.software;
+const studentItems = siteData.students;
+const talkItems = siteData.talks;
+const grantItems = siteData.grants;
+const softwareTags = [...new Set(softwareItems.flatMap((item) => String(item.tags || "").split(/\s*,\s*/).filter(Boolean)))];
+const featuredPublications = siteData.publications.slice(0, 8);
+const latestSoftware = softwareItems[0] || {};
+const latestStudent = studentItems[0] || {};
+const latestTalk = talkItems[0] || {};
+const latestGrant = grantItems[0] || {};
+
+const footerLinks = [
+  {
+    href: sitePath("publications/"),
+    label: "Publications archive",
+    title: "Browse the full publications page",
+  },
+  {
+    href: sitePath("miscellaneous/"),
+    label: "Miscellaneous archive",
+    title: "Browse the service and personal link archive",
+  },
+];
+---
+
+<Layout
+  title={`${profile.name || "Min-Yen Kan"} | Research`}
+  description={`Research overview for ${profile.name || "Min-Yen Kan"}, powered by Astro and Google Sheets content.`}
+>
+  <main class="page-shell">
+    <HeroSection
+      eyebrow="Research overview"
+      title={profile.name || "Min-Yen Kan"}
+      headline="Featured publications stay on the homepage, while the full software inventory now lives here."
+      tags={[
+        `${siteData.publications.length} publications`,
+        `${softwareItems.length} software items`,
+        `${studentItems.length} students`,
+        profile.title,
+      ].filter(Boolean)}
+      stats={[
+        {
+          label: "Software items",
+          value: softwareItems.length,
+          text: latestSoftware.name || "No software records yet",
+        },
+        {
+          label: "Topics",
+          value: softwareTags.length || "—",
+          text: softwareTags.join(" · ") || "Tags appear here as the sheet grows.",
+        },
+        {
+          label: "Latest student",
+          value: latestStudent.name || "—",
+          text: [latestStudent.role, latestStudent.status].filter(Boolean).join(" · ") || "Student record",
+        },
+        {
+          label: "Latest talk",
+          value: latestTalk.date || latestTalk.year || "—",
+          text: latestTalk.title || "Talk record",
+        },
+        {
+          label: "Latest grant",
+          value: latestGrant.startYear || "—",
+          text: latestGrant.title || "Grant record",
+          accent: true,
+        },
+      ]}
+    />
+
+    <SectionNav items={primaryNavItems} />
+
+    <PublicationList
+      id="featured-publications"
+      title="Featured publications"
+      summary="A small set of representative publications so the research page stays readable."
+      items={featuredPublications}
+      showExtras={true}
+    />
+
+    <section id="software" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Software</p>
+          <h2>Full software archive</h2>
+        </div>
+        <p class="section-summary">
+          The complete software list now lives here, with project links and docs kept together.
+        </p>
+      </div>
+
+      <div class="stack">
+        {softwareItems.map((item) => (
+          <article class="list-item">
+            <div class="list-meta">
+              {item.status && <span>{item.status}</span>}
+              {item.tags && <span>{item.tags}</span>}
+            </div>
+            <h3>{item.name || "Software"}</h3>
+            <p class="muted">{item.description}</p>
+            <div class="link-row">
+              {item.repoUrl && (
+                <a class="inline-link" href={item.repoUrl} rel="noreferrer">
+                  Repo
+                </a>
+              )}
+              {item.docsUrl && (
+                <a class="inline-link" href={item.docsUrl} rel="noreferrer">
+                  Docs
+                </a>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="students" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Students</p>
+          <h2>Full student list</h2>
+        </div>
+        <p class="section-summary">
+          The full student roster stays here while the homepage keeps only the current highlights.
+        </p>
+      </div>
+
+      <div class="stack">
+        {studentItems.map((item) => (
+          <article class="list-item">
+            <p class="card-topline">
+              {item.cohort || "n.d."}
+              {item.level ? ` · ${item.level}` : ""}
+            </p>
+            <h3>{item.name || "Student"}</h3>
+            <p>{[item.role, item.status].filter(Boolean).join(" · ")}</p>
+            {item.interests && <p class="muted">{item.interests}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="talks" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Talks</p>
+          <h2>Full talk history</h2>
+        </div>
+        <p class="section-summary">
+          The complete talk history lives here, with the latest presentation surfaced in the hero.
+        </p>
+      </div>
+
+      <div class="stack">
+        {talkItems.map((item) => (
+          <article class="list-item">
+            <p class="card-topline">
+              {item.date || item.year || "n.d."}
+              {item.event ? ` · ${item.event}` : ""}
+            </p>
+            <h3>{item.title || "Talk"}</h3>
+            <p>{[item.venue, item.location].filter(Boolean).join(" · ")}</p>
+            {item.notes && <p class="muted">{item.notes}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="grants" class="panel section-block">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Grants</p>
+          <h2>Full grant history</h2>
+        </div>
+        <p class="section-summary">
+          The complete grant list lives here, with the newest item highlighted in the hero area.
+        </p>
+      </div>
+
+      <div class="stack">
+        {grantItems.map((item) => (
+          <article class="list-item">
+            <p class="card-topline">
+              {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
+              {item.recordType ? ` · ${item.recordType}` : ""}
+            </p>
+            <h3>{item.title || "Grant"}</h3>
+            <p>{[item.role, item.sponsor].filter(Boolean).join(" · ")}</p>
+            {item.amount && <p class="muted">{`${item.currency || ""} ${item.amount}`.trim()}</p>}
+            {item.notes && <p class="muted">{item.notes}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <SiteFooter links={footerLinks} />
+  </main>
+</Layout>
+
+<style>
+  .page-shell {
+    width: min(1140px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  .section-block {
+    border-radius: 26px;
+    padding: 1.25rem;
+  }
+
+  .stack {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .list-item {
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--panel-contrast);
+    padding: 1rem 1rem 0.95rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .list-item h3 {
+    margin: 0.35rem 0 0.3rem;
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+
+  .list-meta,
+  .section-kicker {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .list-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .list-meta span + span::before {
+    content: "•";
+    margin-right: 0.45rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    margin: 0.3rem 0 0;
+    letter-spacing: -0.03em;
+    font-size: clamp(1.3rem, 2vw, 2rem);
+  }
+
+  .section-summary,
+  .list-item p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .card-topline {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .inline-link {
+    display: inline-flex;
+    margin-top: 0.6rem;
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .inline-link:hover {
+    color: var(--accent-2);
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.6rem;
+  }
+
+  @media (max-width: 980px) {
+    .section-header {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .page-shell {
+      width: min(100% - 1rem, 1140px);
+      padding-top: 1rem;
+    }
+
+    .section-block {
+      border-radius: 20px;
+      padding: 1rem;
+    }
+  }
+</style>

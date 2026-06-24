@@ -5,6 +5,7 @@ import SectionNav from "../components/section-nav.astro";
 import PublicationList from "../components/publication-list.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
+import { primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
 
 const profile = siteData.profile;
@@ -12,29 +13,18 @@ const publicationAreas = [...new Set(siteData.publications.map((item) => item.ar
 const featuredPublications = siteData.publications.slice(0, 8);
 const archivePublications = siteData.publications;
 
-const navItems = [
-  {
-    href: sitePath(""),
-    label: "Home",
-    title: "Return to the homepage",
-  },
-  {
-    href: "#featured",
-    label: "Featured",
-    title: "Jump to the highlighted publications",
-  },
-  {
-    href: "#archive",
-    label: "Archive",
-    title: "Browse the full publication list",
-  },
-];
+const navItems = primaryNavItems;
 
 const footerLinks = [
   {
     href: sitePath(""),
     label: "Back home",
     title: "Return to the homepage",
+  },
+  {
+    href: sitePath("research/"),
+    label: "Research page",
+    title: "Browse the research overview",
   },
 ];
 ---
