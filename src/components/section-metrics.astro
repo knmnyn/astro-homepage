@@ -1,0 +1,204 @@
+---
+const { metrics = [] } = Astro.props;
+const filterMetrics = metrics.filter((metric) => metric.kind === "enum");
+const sortMetrics = metrics.filter((metric) => metric.kind === "sort");
+---
+
+{(filterMetrics.length > 0 || sortMetrics.length > 0) && (
+  <div class="section-metrics" aria-label="Section metrics">
+    {filterMetrics.map((metric) => (
+      <div class="metric-group">
+        <div class="metric-values">
+          {metric.values.map((entry) => (
+            <button
+              type="button"
+              class="metric-chip metric-toggle"
+              data-metric-toggle
+              data-metric-field={metric.fieldKey}
+              data-metric-value={entry.label}
+              aria-pressed="false"
+            >
+              <span class="metric-filter-label">{entry.label}</span>
+              <span class="metric-filter-count">{entry.count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    ))}
+    {sortMetrics.length > 0 && (
+      <div class="metric-group metric-group--sort">
+        <div class="metric-values">
+          {sortMetrics.map((metric) => (
+            <button
+              type="button"
+              class="metric-chip metric-sort-toggle"
+              data-sort-toggle
+              data-sort-field={metric.fieldKey}
+              data-sort-label={metric.label}
+              data-sort-direction="asc"
+              aria-pressed="false"
+              aria-label={`Sort by ${metric.label}, ascending`}
+            >
+              <span class="metric-sort-label">{metric.label}</span>
+              <span class="metric-sort-separator" aria-hidden="true">·</span>
+              <span class="metric-sort-indicator" data-sort-indicator aria-hidden="true">↕</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
+<script type="module">
+  import { initAllMetricScopes } from "../lib/metric-scope.js";
+
+  const boot = () => initAllMetricScopes();
+
+  document.addEventListener("DOMContentLoaded", boot, { once: true });
+  document.addEventListener("astro:page-load", boot);
+  boot();
+</script>
+
+<style>
+  .section-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+
+  .metric-group {
+    display: grid;
+    gap: 0.3rem;
+    justify-items: start;
+  }
+
+  .metric-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    justify-content: flex-start;
+  }
+
+  .metric-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--nav-chip);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .metric-chip,
+  .metric-toggle {
+    appearance: none;
+    font: inherit;
+  }
+
+  .metric-chip strong {
+    color: var(--accent);
+    font-size: 0.94rem;
+  }
+
+  .metric-filter-label {
+    color: inherit;
+  }
+
+  .metric-filter-count {
+    color: var(--muted);
+  }
+
+  .metric-toggle {
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .metric-toggle:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  }
+
+  .metric-toggle[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--accent-soft) 60%, var(--nav-chip));
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+    color: var(--text);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+
+  .metric-sort-toggle {
+    gap: 0.45rem;
+  }
+
+  .metric-sort-label {
+    color: inherit;
+  }
+
+  .metric-sort-separator,
+  .metric-sort-indicator {
+    color: var(--muted);
+  }
+
+  .metric-sort-toggle[aria-pressed="true"] .metric-sort-separator,
+  .metric-sort-toggle[aria-pressed="true"] .metric-sort-indicator {
+    color: var(--accent);
+  }
+
+  :global([data-metric-card]) {
+    position: relative;
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  :global([data-metric-card].metric-card--highlight) {
+    border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--accent-soft) 12%, var(--panel-contrast));
+  }
+
+  :global([data-metric-card].metric-card--highlight::before) {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0.38rem;
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent-2) 88%, var(--accent)) 0%,
+      color-mix(in srgb, var(--accent) 78%, var(--accent-2)) 100%
+    );
+    pointer-events: none;
+  }
+
+  :global([data-metric-card].metric-card--dim) {
+    opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .metric-toggle {
+      transition: none;
+    }
+
+    :global([data-metric-card]) {
+      transition: none;
+    }
+  }
+
+</style>

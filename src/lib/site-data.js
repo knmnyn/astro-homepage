@@ -8,11 +8,12 @@ import grantsSheet from "../generated/content-sources/grants.json";
 import softwareSheet from "../generated/content-sources/software.json";
 import serviceSheet from "../generated/content-sources/service.json";
 import personalLinksSheet from "../generated/content-sources/personal-links.json";
+import { stripMetricMarker } from "./sheet-metrics";
 
 function fieldValue(record, fieldName) {
-  const target = String(fieldName).toLowerCase();
+  const target = stripMetricMarker(fieldName).toLowerCase();
   for (const [key, value] of Object.entries(record ?? {})) {
-    if (key.toLowerCase() === target) {
+    if (stripMetricMarker(key).toLowerCase() === target) {
       return value;
     }
   }
@@ -168,6 +169,18 @@ function personalLinkItems() {
 export const siteData = {
   profile: profileMap(),
   navItems: navItems(),
+  sources: {
+    profile: profileSheet,
+    nav: navSheet,
+    publications: publicationsSheet,
+    teaching: teachingSheet,
+    students: studentsSheet,
+    talks: talksSheet,
+    grants: grantsSheet,
+    software: softwareSheet,
+    service: serviceSheet,
+    personalLinks: personalLinksSheet,
+  },
   publications: publicationItems(),
   teaching: teachingItems(),
   students: studentItems(),

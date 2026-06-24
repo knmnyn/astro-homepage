@@ -2,16 +2,21 @@
 import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
+import SectionMetrics from "../components/section-metrics.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
 import { primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
+import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
 
 const profile = siteData.profile;
 const serviceItems = siteData.service;
+const serviceRecords = Array.isArray(siteData.sources.service?.records) ? siteData.sources.service.records : [];
 const serviceCategories = [...new Set(serviceItems.map((item) => item.category).filter(Boolean))];
 const latestService = serviceItems[0] || {};
 const featuredService = serviceItems.slice(0, 4);
+const serviceMetrics = buildSheetMetrics(siteData.sources.service);
+const serviceCountMetric = getSheetCountMetric(serviceMetrics);
 
 const navItems = primaryNavItems;
 
@@ -60,20 +65,23 @@ const footerLinks = [
 
     <SectionNav items={navItems} />
 
-    <section class="panel section-block">
+    <section class="panel section-block" data-metric-scope-root="service-archive">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Service</p>
+          <p class="section-kicker">Service{serviceCountMetric ? ` · ${serviceCountMetric.value}` : ""}</p>
           <h2>Featured service entries</h2>
         </div>
-        <p class="section-summary">
-          Selected highlights from the service sheet. <a class="inline-link" href={sitePath("miscellaneous/")}>Open the full archive</a>.
-        </p>
+        <div class="section-header-aside">
+          <p class="section-summary">
+            Selected highlights from the service sheet. <a class="inline-link" href={sitePath("miscellaneous/")}>Open the full archive</a>.
+          </p>
+          <SectionMetrics metrics={serviceMetrics} scope="service-archive" />
+        </div>
       </div>
 
       <div class="stack">
-        {featuredService.map((item) => (
-          <article class="list-item">
+        {featuredService.map((item, index) => (
+          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(serviceRecords[index], serviceMetrics))}>
             <p class="card-topline">
               {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
               {item.category ? ` · ${item.category}` : ""}
@@ -118,6 +126,12 @@ const footerLinks = [
   .stack {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .section-header-aside {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: end;
   }
 
   .list-item {
@@ -185,6 +199,10 @@ const footerLinks = [
     .section-header {
       align-items: start;
       flex-direction: column;
+    }
+
+    .section-header-aside {
+      justify-items: start;
     }
   }
 

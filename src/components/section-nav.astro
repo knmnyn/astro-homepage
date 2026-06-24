@@ -4,7 +4,6 @@ import { sitePath } from "../lib/site-path";
 const {
   items = [],
   ariaLabel = "Section navigation",
-  themeLabel = "Color theme",
   themeGroupLabel = "Color theme mode",
   fontSizeLabel = "Text size",
   brandLabel = "Min-Yen Kan",
@@ -46,8 +45,7 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
         </span>
       </button>
 
-      <div class="theme-switch" aria-label={themeLabel}>
-        <span class="sr-only">{themeLabel}</span>
+      <div class="theme-switch">
         <div class="theme-switch-group" role="group" aria-label={themeGroupLabel}>
           <button type="button" class="theme-switch-option" data-theme-choice="auto" aria-pressed="true" aria-label="Use system theme">
             <span aria-hidden="true">◌</span>

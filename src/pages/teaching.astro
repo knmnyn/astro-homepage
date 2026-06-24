@@ -2,15 +2,20 @@
 import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
+import SectionMetrics from "../components/section-metrics.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
 import { primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
+import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
 
 const profile = siteData.profile;
 const teachingItems = siteData.teaching;
+const teachingRecords = Array.isArray(siteData.sources.teaching?.records) ? siteData.sources.teaching.records : [];
 const teachingYears = [...new Set(teachingItems.map((item) => item.academicYear).filter(Boolean))];
 const latestTeaching = teachingItems[0] || {};
+const teachingMetrics = buildSheetMetrics(siteData.sources.teaching);
+const teachingCountMetric = getSheetCountMetric(teachingMetrics);
 
 const navItems = primaryNavItems;
 
@@ -59,18 +64,21 @@ const footerLinks = [
 
     <SectionNav items={navItems} />
 
-    <section class="panel section-block">
+    <section class="panel section-block" data-metric-scope-root="teaching-archive">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Teaching</p>
+          <p class="section-kicker">Teaching{teachingCountMetric ? ` · ${teachingCountMetric.value}` : ""}</p>
           <h2>Full teaching archive</h2>
         </div>
-        <p class="section-summary">All teaching sheet entries are listed here.</p>
+        <div class="section-header-aside">
+          <p class="section-summary">All teaching sheet entries are listed here.</p>
+          <SectionMetrics metrics={teachingMetrics} scope="teaching-archive" />
+        </div>
       </div>
 
       <div class="stack">
-        {teachingItems.map((item) => (
-          <article class="list-item">
+        {teachingItems.map((item, index) => (
+          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(teachingRecords[index], teachingMetrics))}>
             <p class="card-topline">
               {item.academicYear || "n.d."}
               {item.term ? ` · ${item.term}` : ""}
@@ -119,6 +127,12 @@ const footerLinks = [
   .stack {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .section-header-aside {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: end;
   }
 
   .list-item {
@@ -186,6 +200,10 @@ const footerLinks = [
     .section-header {
       align-items: start;
       flex-direction: column;
+    }
+
+    .section-header-aside {
+      justify-items: start;
     }
   }
 

@@ -39,11 +39,7 @@ What is here now:
 - an Astro wrapper for build and preview commands that keeps exported asset URLs correct
 - a gitignored HTML pipeline log that can be copied to the serving destination
 - a spreadsheet template for authoring the homepage content
-- a light/dark/auto theme switch in the shared navigation
-
-What is not yet finished:
-
-- section pages like Research, Teaching, Publications, Software, Service, and Personal
+- a compact theme switch and font-size control in the shared navigation
 - per-section Astro routes wired to the generated sheet data
 
 ## Homepage Design
@@ -93,9 +89,8 @@ The homepage is designed as a classic academic profile site with a clear informa
 - `/research` - research summary, student cohorts, talks, grants
 - `/teaching` - current and past courses
 - `/publications` - publication archive
-- `/software` - project and tool list
 - `/service` - committee and editorial service
-- `/personal` - personal notes and miscellany
+- `/miscellaneous` - software, personal links, and other archive material
 
 ## Data Pipeline
 
@@ -212,13 +207,20 @@ show the latest run history without opening the local cache.
 
 ### Theme Switch
 
-The shared layout includes a three-state theme control in the navigation bar:
+The shared layout includes a three-state theme control and a two-button font-size control in the navigation bar:
 
 - `Auto`
 - `Light`
 - `Dark`
 
 Theme choice is stored in the browser and applied to the homepage shell. Auto mode follows the user’s system preference.
+The font-size control steps through `80%`, `100%`, and `120%`.
+
+The shared chrome logic lives in:
+
+- `src/layouts/Layout.astro`
+- `src/lib/site-chrome.js`
+- `src/components/section-nav.astro`
 
 ### How It Works
 
@@ -255,6 +257,17 @@ Tabs currently defined:
 - personal links
 
 Each tab includes example rows based on the homepage content so the sheet is immediately usable.
+
+### Sheet Markers
+
+The generated sheets use a lightweight header marker vocabulary:
+
+- `[#]` - metric column used for filter chips that show `label + count`
+- `[|]` - sortable column exposed as an ascending/descending sort chip
+- `[!]` - pinned row content
+- `[*]` - featured row content
+
+The site strips these markers when reading values, so the label text stays clean in the UI while the markers still guide generation and presentation. In the research archive, metric group headings are omitted and the filter chips display both the label and count directly; sort chips keep the field label and toggle direction when pressed. Sort values are compared numerically when possible, including decimal values and magnitude suffixes like `K`, `M`, and `B`, with optional spaces before the suffix. Row-level `[!]` and `[*]` markers are preserved in the content model for presentation, but they are not treated as column markers.
 
 ## Project Structure
 
@@ -362,17 +375,23 @@ rsync -avz --delete outputs/public_html/astro-homepage/ USER@HOST:~/public_html/
 - [scripts/build-and-export.mjs](./scripts/build-and-export.mjs)
 - [scripts/export-static.mjs](./scripts/export-static.mjs)
 - [scripts/pipeline-log.mjs](./scripts/pipeline-log.mjs)
+- [src/lib/site-chrome.js](./src/lib/site-chrome.js)
+- [src/lib/sheet-metrics.js](./src/lib/sheet-metrics.js)
 - [test/content-watcher.test.mjs](./test/content-watcher.test.mjs)
 - [test/build-and-export.test.mjs](./test/build-and-export.test.mjs)
 - [test/export-static.test.mjs](./test/export-static.test.mjs)
 - [test/pipeline-log.test.mjs](./test/pipeline-log.test.mjs)
+- [test/site-chrome.test.mjs](./test/site-chrome.test.mjs)
+- [test/metric-scope.test.mjs](./test/metric-scope.test.mjs)
+- [test/sheet-metrics.test.mjs](./test/sheet-metrics.test.mjs)
 
 ## Development Notes
 
 - The homepage is now driven by the sheet-generated JSON in `src/generated/content-sources/`.
 - The static export step is intentionally a directory copy so it can target a `public_html` mount or sync destination.
 - The build/export wrapper skips `astro build` when the input hash is unchanged.
-- The remaining work is mostly section routing and continued content refinement.
+- The shared nav uses compact theme and font-size controls, so browser text scaling stays local to the session.
+- The remaining work is mostly content refinement and visual polish.
 
 ## Next Steps
 

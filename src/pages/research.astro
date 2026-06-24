@@ -3,22 +3,36 @@ import Layout from "../layouts/Layout.astro";
 import HeroSection from "../components/hero-section.astro";
 import SectionNav from "../components/section-nav.astro";
 import PublicationList from "../components/publication-list.astro";
+import SectionMetrics from "../components/section-metrics.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
 import { primaryNavItems } from "../lib/site-navigation";
 import { sitePath } from "../lib/site-path";
+import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
 
 const profile = siteData.profile;
 const softwareItems = siteData.software;
 const studentItems = siteData.students;
 const talkItems = siteData.talks;
 const grantItems = siteData.grants;
+const softwareRecords = Array.isArray(siteData.sources.software?.records) ? siteData.sources.software.records : [];
+const studentRecords = Array.isArray(siteData.sources.students?.records) ? siteData.sources.students.records : [];
+const talkRecords = Array.isArray(siteData.sources.talks?.records) ? siteData.sources.talks.records : [];
+const grantRecords = Array.isArray(siteData.sources.grants?.records) ? siteData.sources.grants.records : [];
 const softwareTags = [...new Set(softwareItems.flatMap((item) => String(item.tags || "").split(/\s*,\s*/).filter(Boolean)))];
 const featuredPublications = siteData.publications.slice(0, 8);
 const latestSoftware = softwareItems[0] || {};
 const latestStudent = studentItems[0] || {};
 const latestTalk = talkItems[0] || {};
 const latestGrant = grantItems[0] || {};
+const softwareMetrics = buildSheetMetrics(siteData.sources.software);
+const studentMetrics = buildSheetMetrics(siteData.sources.students);
+const talkMetrics = buildSheetMetrics(siteData.sources.talks);
+const grantMetrics = buildSheetMetrics(siteData.sources.grants);
+const softwareCountMetric = getSheetCountMetric(softwareMetrics);
+const studentCountMetric = getSheetCountMetric(studentMetrics);
+const talkCountMetric = getSheetCountMetric(talkMetrics);
+const grantCountMetric = getSheetCountMetric(grantMetrics);
 
 const footerLinks = [
   {
@@ -89,20 +103,23 @@ const footerLinks = [
       showExtras={true}
     />
 
-    <section id="software" class="panel section-block">
+    <section id="software" class="panel section-block" data-metric-scope-root="research-software">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Software</p>
+          <p class="section-kicker">Software{softwareCountMetric ? ` · ${softwareCountMetric.value}` : ""}</p>
           <h2>Full software archive</h2>
         </div>
-        <p class="section-summary">
-          The complete software list now lives here, with project links and docs kept together.
-        </p>
+        <div class="section-header-aside">
+          <p class="section-summary">
+            The complete software list now lives here, with project links and docs kept together.
+          </p>
+          <SectionMetrics metrics={softwareMetrics} scope="research-software" />
+        </div>
       </div>
 
       <div class="stack">
-        {softwareItems.map((item) => (
-          <article class="list-item">
+        {softwareItems.map((item, index) => (
+          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(softwareRecords[index], softwareMetrics))}>
             <div class="list-meta">
               {item.status && <span>{item.status}</span>}
               {item.tags && <span>{item.tags}</span>}
@@ -126,20 +143,23 @@ const footerLinks = [
       </div>
     </section>
 
-    <section id="students" class="panel section-block">
+    <section id="students" class="panel section-block" data-metric-scope-root="research-students">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Students</p>
+          <p class="section-kicker">Students{studentCountMetric ? ` · ${studentCountMetric.value}` : ""}</p>
           <h2>Full student list</h2>
         </div>
-        <p class="section-summary">
-          The full student roster stays here while the homepage keeps only the current highlights.
-        </p>
+        <div class="section-header-aside">
+          <p class="section-summary">
+            The full student roster stays here while the homepage keeps only the current highlights.
+          </p>
+          <SectionMetrics metrics={studentMetrics} scope="research-students" />
+        </div>
       </div>
 
       <div class="stack">
-        {studentItems.map((item) => (
-          <article class="list-item">
+        {studentItems.map((item, index) => (
+          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(studentRecords[index], studentMetrics))}>
             <p class="card-topline">
               {item.cohort || "n.d."}
               {item.level ? ` · ${item.level}` : ""}
@@ -152,20 +172,23 @@ const footerLinks = [
       </div>
     </section>
 
-    <section id="talks" class="panel section-block">
+    <section id="talks" class="panel section-block" data-metric-scope-root="research-talks">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Talks</p>
+          <p class="section-kicker">Talks{talkCountMetric ? ` · ${talkCountMetric.value}` : ""}</p>
           <h2>Full talk history</h2>
         </div>
-        <p class="section-summary">
-          The complete talk history lives here, with the latest presentation surfaced in the hero.
-        </p>
+        <div class="section-header-aside">
+          <p class="section-summary">
+            The complete talk history lives here, with the latest presentation surfaced in the hero.
+          </p>
+          <SectionMetrics metrics={talkMetrics} scope="research-talks" />
+        </div>
       </div>
 
       <div class="stack">
-        {talkItems.map((item) => (
-          <article class="list-item">
+        {talkItems.map((item, index) => (
+          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(talkRecords[index], talkMetrics))}>
             <p class="card-topline">
               {item.date || item.year || "n.d."}
               {item.event ? ` · ${item.event}` : ""}
@@ -178,20 +201,23 @@ const footerLinks = [
       </div>
     </section>
 
-    <section id="grants" class="panel section-block">
+    <section id="grants" class="panel section-block" data-metric-scope-root="research-grants">
       <div class="section-header">
         <div>
-          <p class="section-kicker">Grants</p>
+          <p class="section-kicker">Grants{grantCountMetric ? ` · ${grantCountMetric.value}` : ""}</p>
           <h2>Full grant history</h2>
         </div>
-        <p class="section-summary">
-          The complete grant list lives here, with the newest item highlighted in the hero area.
-        </p>
+        <div class="section-header-aside">
+          <p class="section-summary">
+            The complete grant list lives here, with the newest item highlighted in the hero area.
+          </p>
+          <SectionMetrics metrics={grantMetrics} scope="research-grants" />
+        </div>
       </div>
 
       <div class="stack">
-        {grantItems.map((item) => (
-          <article class="list-item">
+        {grantItems.map((item, index) => (
+          <article class="list-item" data-metric-card data-metric-values={JSON.stringify(buildMetricCardData(grantRecords[index], grantMetrics))}>
             <p class="card-topline">
               {[item.startYear, item.endYear].filter(Boolean).join(" - ") || "n.d."}
               {item.recordType ? ` · ${item.recordType}` : ""}
@@ -233,6 +259,12 @@ const footerLinks = [
   .stack {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .section-header-aside {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: end;
   }
 
   .list-item {
@@ -327,6 +359,10 @@ const footerLinks = [
     .section-header {
       align-items: start;
       flex-direction: column;
+    }
+
+    .section-header-aside {
+      justify-items: start;
     }
   }
 

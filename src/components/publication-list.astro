@@ -1,12 +1,21 @@
 ---
+import SectionMetrics from "./section-metrics.astro";
+import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
+
 const {
   id,
   title,
   summary,
   items = [],
+  sheet = null,
+  scope = id,
   showExtras = false,
   emptyMessage = "No publications are available yet.",
 } = Astro.props;
+
+const metrics = buildSheetMetrics(sheet);
+const countMetric = getSheetCountMetric(metrics);
+const records = Array.isArray(sheet?.records) ? sheet.records : [];
 
 function joinParts(values, separator = " · ") {
   return values.filter(Boolean).join(separator);
@@ -30,22 +39,30 @@ function publicationLinks(item) {
 }
 ---
 
-<section id={id} class="panel section-block publication-list">
+<section id={id} class="panel section-block publication-list" data-metric-scope-root={scope}>
   <div class="section-header">
     <div>
-      <p class="section-kicker">Publications</p>
+      <p class="section-kicker">Publications{countMetric ? ` · ${countMetric.value}` : ""}</p>
       <h2>{title}</h2>
     </div>
-    {summary && <p class="section-summary">{summary}</p>}
+    <div class="section-header-aside">
+      {summary && <p class="section-summary">{summary}</p>}
+      <SectionMetrics metrics={metrics} scope={scope} />
+    </div>
   </div>
 
   {items.length > 0 ? (
     <div class="stack">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const links = publicationLinks(item);
+        const metricValues = buildMetricCardData(records[index], metrics);
 
         return (
-          <article class={`publication-card ${showExtras ? "publication-card--full" : "publication-card--compact"}`}>
+          <article
+            class={`publication-card ${showExtras ? "publication-card--full" : "publication-card--compact"}`}
+            data-metric-card
+            data-metric-values={JSON.stringify(metricValues)}
+          >
             <div class="list-meta">
               <span>{item.year || "n.d."}</span>
               {item.type && <span>{item.type}</span>}
@@ -101,6 +118,12 @@ function publicationLinks(item) {
   .stack {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .section-header-aside {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: end;
   }
 
   .publication-card {
@@ -161,5 +184,11 @@ function publicationLinks(item) {
 
   .inline-link:hover {
     color: var(--accent-2);
+  }
+
+  @media (max-width: 980px) {
+    .section-header-aside {
+      justify-items: start;
+    }
   }
 </style>
