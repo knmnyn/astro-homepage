@@ -78,7 +78,6 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
         >
           <span aria-hidden="true">−</span>
         </button>
-        <span class="sr-only" data-font-scale-value aria-live="polite">100%</span>
         <button
           type="button"
           class="font-scale-button"
@@ -276,9 +275,10 @@ const normalizePathname = (href) => new URL(href, Astro.url).pathname.replace(/\
   }
 
   .theme-switch-option[aria-pressed="true"] {
-    background: var(--control-active);
-    color: var(--control-active-text);
-    box-shadow: 0 10px 20px color-mix(in srgb, var(--control-active) 24%, transparent);
+    background: transparent;
+    color: var(--accent);
+    box-shadow: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
   }
 
   .theme-switch-option:hover {

@@ -11,10 +11,29 @@ const HeadingTag = `h${level}`;
 
 <HeadingTag class={className}>
   {url ? (
-    <a href={url} rel="noreferrer">
+    <a class="card-title-link" href={url} rel="noreferrer">
       {title}
     </a>
   ) : (
     title
   )}
 </HeadingTag>
+
+<style>
+  .card-title-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card-title-link:visited {
+    color: inherit;
+  }
+
+  .card-title-link:hover,
+  .card-title-link:focus-visible {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.16em;
+  }
+</style>

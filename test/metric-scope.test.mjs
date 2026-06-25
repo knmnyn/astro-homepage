@@ -210,6 +210,20 @@ test("initMetricScope keeps filtering active while sorting and compares numbers 
   assert.equal(thirdCard.classList.has("metric-card--highlight"), true);
 });
 
+test("initMetricScope matches semicolon-delimited values as multiple categories", () => {
+  const roleButton = createButton("role", "PI");
+  const multiRoleCard = createCard({ role: ["PI", "Co-PI"] });
+  const otherCard = createCard({ role: "Student" });
+  const scopeRoot = createScopeRoot({ buttons: [roleButton], cards: [multiRoleCard, otherCard] });
+
+  initMetricScope(scopeRoot);
+
+  roleButton.click();
+  assert.equal(multiRoleCard.classList.has("metric-card--highlight"), true);
+  assert.equal(otherCard.classList.has("metric-card--highlight"), false);
+  assert.equal(otherCard.classList.has("metric-card--dim"), true);
+});
+
 test("initMetricScope sorts decimals and magnitude suffixes numerically", () => {
   const sortButton = createSortButton("amount", "Amount");
   const firstCard = createCard({ amount: "1.2M" });

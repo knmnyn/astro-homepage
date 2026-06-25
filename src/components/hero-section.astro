@@ -1,4 +1,6 @@
 ---
+import { normalizeMetricDisplayValue } from "../lib/sheet-metrics.js";
+
 const {
   eyebrow,
   title,
@@ -7,7 +9,14 @@ const {
   contacts = [],
   stats = [],
   tags = [],
+  imageSrc = "",
+  imageAlt = "",
 } = Astro.props;
+
+const normalizedStats = stats.map((stat) => ({
+  ...stat,
+  value: normalizeMetricDisplayValue(stat.value),
+}));
 ---
 
 <section class="hero panel">
@@ -47,15 +56,24 @@ const {
     )}
   </div>
 
-  {stats.length > 0 && (
+  {(imageSrc || stats.length > 0) && (
     <aside class="hero-aside">
-      {stats.map((stat) => (
-        <div class={`stat-card ${stat.accent ? "accent" : ""}`}>
-          {stat.label && <span class="stat-label">{stat.label}</span>}
-          {stat.value && <strong>{stat.value}</strong>}
-          {stat.text && <p>{stat.text}</p>}
-        </div>
-      ))}
+      {imageSrc && (
+        <figure class="hero-image">
+          <img src={imageSrc} alt={imageAlt || title || ""} loading="eager" decoding="async" />
+        </figure>
+      )}
+      {stats.length > 0 && (
+        <>
+          {normalizedStats.map((stat) => (
+            <div class={`stat-card ${stat.accent ? "accent" : ""}`}>
+              {stat.label && <span class="stat-label">{stat.label}</span>}
+              {stat.value && <strong>{Array.isArray(stat.value) ? stat.value.join(" · ") : stat.value}</strong>}
+              {stat.text && <p>{stat.text}</p>}
+            </div>
+          ))}
+        </>
+      )}
     </aside>
   )}
 </section>
@@ -162,6 +180,23 @@ const {
   .hero-aside {
     display: grid;
     gap: 0.85rem;
+  }
+
+  .hero-image {
+    margin: 0;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--panel-strong);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .hero-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
   }
 
   .stat-card {

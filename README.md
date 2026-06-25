@@ -379,6 +379,12 @@ The remaining sheets follow the same general pattern:
 
 The site strips the marker prefixes on read, so the component code can work with clean field names while the spreadsheet keeps the richer authoring hints. Sort chips compare numbers naturally, including decimal values and magnitude suffixes like `K`, `M`, and `B`, and also compare date-like values chronologically when a field contains dates such as `24 Aug 2018` or `2018-08-24`.
 
+If a metric field value contains semicolons, the values are treated as separate categories for both chip counts and card highlighting. For example, `NLP; IR` contributes to both `NLP` and `IR`, and clicking either chip will highlight the matching cards.
+
+Hero stat cards that summarize a `[#]` metric column should use the same metric parser so the displayed totals and labels stay in sync with the chips.
+
+When a stat-card value is a semicolon-delimited list, the hero renderer deduplicates the values and displays them as a compact list, for example `DL;NLP` becomes `DL · NLP`.
+
 Unit tests under `test/` cover the data normalization helpers, including URL-field labeling, embed detection, student sheet mapping, and nav text extraction.
 
 ## Project Structure
@@ -421,6 +427,22 @@ npm run preview
 npm run sync:content
 npm run watch:content
 npm test
+```
+
+### Testing
+
+Run the full automated test suite with:
+
+```sh
+npm test
+```
+
+That command uses Node's built-in test runner and executes every file in `test/`.
+
+To run a focused subset while iterating:
+
+```sh
+node --test test/site-chrome.test.mjs test/sheet-metrics.test.mjs
 ```
 
 Notes:

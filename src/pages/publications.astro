@@ -6,16 +6,19 @@ import PublicationList from "../components/publication-list.astro";
 import SiteFooter from "../components/site-footer.astro";
 import { siteData } from "../lib/site-data";
 import { getNavSectionText, primaryNavItems } from "../lib/site-navigation";
-import { groupPublicationsBySection } from "../lib/publication-groups.js";
+import { groupPublicationsBySectionWithSheet } from "../lib/publication-groups.js";
 import { sitePath } from "../lib/site-path";
 import { renderInlineMarkdown } from "../lib/inline-markdown.js";
+import { buildSheetMetrics, collectMetricFieldValues } from "../lib/sheet-metrics.js";
 
 const profile = siteData.profile;
-const publicationAreas = [...new Set(siteData.publications.map((item) => item.area).filter(Boolean))];
+const publicationMetrics = buildSheetMetrics(siteData.sources.publications);
+const publicationAreaLabels = collectMetricFieldValues(siteData.sources.publications.records, "Area");
 const featuredPublications = siteData.publications.slice(0, 8);
 const archivePublications = siteData.publications;
-const publicationGroups = groupPublicationsBySection(archivePublications);
+const publicationGroups = groupPublicationsBySectionWithSheet(archivePublications, siteData.sources.publications);
 const publicationsText = getNavSectionText("publications", { kicker: "Publications" });
+const publicationAreaMetric = publicationMetrics.find((metric) => metric.kind === "enum" && metric.fieldKey === "area") || null;
 
 const navItems = primaryNavItems;
 
@@ -44,7 +47,7 @@ const footerLinks = [
       headline="A complete list of publications from the sheet, with featured items at the top and the full archive below."
       tags={[
         `${siteData.publications.length} publications`,
-        `${publicationAreas.length || "No"} areas`,
+        `${publicationAreaLabels.length || "No"} areas`,
         profile.title,
       ].filter(Boolean)}
       stats={[
@@ -55,8 +58,8 @@ const footerLinks = [
         },
         {
           label: "Research areas",
-          value: publicationAreas.length || "—",
-          text: publicationAreas.join(" · ") || "Areas appear here as the sheet grows.",
+          value: publicationAreaMetric?.values.length || "—",
+          text: publicationAreaLabels.join(" · ") || "Areas appear here as the sheet grows.",
           accent: true,
         },
       ]}
@@ -72,6 +75,7 @@ const footerLinks = [
       intro={publicationsText.intro}
       trailer={publicationsText.trailer}
       items={featuredPublications}
+      sheet={siteData.sources.publications}
       showExtras={true}
     />
 
@@ -93,6 +97,7 @@ const footerLinks = [
             id={`archive-${group.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "other"}`}
             title={group.label}
             items={group.items}
+            sheet={group.sheet}
             showExtras={true}
             masonryGrid={true}
           />

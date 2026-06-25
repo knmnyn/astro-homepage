@@ -10,3 +10,23 @@ export function groupPublicationsBySection(publications = []) {
 
   return Array.from(groups, ([label, items]) => ({ label, items }));
 }
+
+export function groupPublicationsBySectionWithSheet(publications = [], sheet = null) {
+  const groups = groupPublicationsBySection(publications);
+  const sourceRecords = Array.isArray(sheet?.records) ? sheet.records : [];
+
+  return groups.map((group) => {
+    const records = group.items
+      .map((item) => sourceRecords[publications.indexOf(item)])
+      .filter(Boolean);
+
+    return {
+      ...group,
+      sheet: {
+        ...sheet,
+        records,
+        row_count: records.length,
+      },
+    };
+  });
+}

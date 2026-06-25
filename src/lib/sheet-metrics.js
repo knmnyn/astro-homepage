@@ -53,6 +53,44 @@ function lookupField(record, fieldName) {
   return "";
 }
 
+function splitMetricValues(value = "") {
+  return [...new Set(
+    String(value || "")
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean),
+  )];
+}
+
+export function normalizeMetricDisplayValue(value = "") {
+  if (Array.isArray(value)) {
+    return [...new Set(value.map((part) => String(part || "").trim()).filter(Boolean))];
+  }
+
+  const raw = String(value ?? "").trim();
+  if (!raw.includes(";")) {
+    return raw;
+  }
+
+  const parts = splitMetricValues(raw);
+  return parts.length <= 1 ? parts[0] || "" : parts;
+}
+
+export function collectMetricFieldValues(records, fieldName) {
+  const values = new Set();
+
+  for (const record of Array.isArray(records) ? records : []) {
+    const rawValue = String(lookupField(record, fieldName) ?? "").trim();
+    if (!rawValue) continue;
+
+    for (const value of splitMetricValues(rawValue)) {
+      values.add(value);
+    }
+  }
+
+  return [...values];
+}
+
 function countValues(records, fieldName) {
   const counts = new Map();
 
@@ -60,7 +98,9 @@ function countValues(records, fieldName) {
     const rawValue = String(lookupField(record, fieldName) ?? "").trim();
     if (!rawValue) continue;
 
-    counts.set(rawValue, (counts.get(rawValue) || 0) + 1);
+    for (const value of splitMetricValues(rawValue)) {
+      counts.set(value, (counts.get(value) || 0) + 1);
+    }
   }
 
   return [...counts.entries()]
@@ -124,7 +164,13 @@ export function buildMetricCardData(record, metrics) {
     if ((metric?.kind !== "enum" && metric?.kind !== "sort") || !metric.fieldKey) continue;
     const value = String(lookupField(record, metric.label) ?? "").trim();
     if (value) {
-      data[metric.fieldKey] = value;
+      if (metric.kind === "enum") {
+        const parts = splitMetricValues(value);
+        if (!parts.length) continue;
+        data[metric.fieldKey] = parts.length === 1 ? parts[0] : parts;
+      } else {
+        data[metric.fieldKey] = value;
+      }
     }
   }
 

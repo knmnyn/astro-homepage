@@ -10,6 +10,14 @@ function parseValues(card) {
   }
 }
 
+function matchesMetricValue(cardValue, filterValue) {
+  if (Array.isArray(cardValue)) {
+    return cardValue.some((value) => String(value ?? "").trim() === filterValue);
+  }
+
+  return String(cardValue ?? "").trim() === filterValue;
+}
+
 function syncButtons(buttons, activeFilter) {
   for (const button of buttons) {
     const field = button?.dataset?.metricField || "";
@@ -148,7 +156,7 @@ function sortCards(cards, activeSort) {
 function applyFilters(cards, buttons, activeFilter, sortButtons = [], activeSort = null) {
   for (const card of cards) {
     const values = parseValues(card);
-    const matches = activeFilter ? String(values[activeFilter.field] || "") === activeFilter.value : false;
+    const matches = activeFilter ? matchesMetricValue(values[activeFilter.field], activeFilter.value) : false;
     card?.classList?.toggle?.("metric-card--highlight", Boolean(activeFilter) && matches);
     card?.classList?.toggle?.("metric-card--dim", Boolean(activeFilter) && !matches);
   }
