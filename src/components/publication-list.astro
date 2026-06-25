@@ -3,6 +3,7 @@ import SectionMetrics from "./section-metrics.astro";
 import CardTitleLink from "./card-title-link.astro";
 import CardUrlLinks from "./card-url-links.astro";
 import { buildSheetMetrics, buildMetricCardData, getSheetCountMetric } from "../lib/sheet-metrics";
+import { buildPublicationCitationFormats } from "../lib/publication-citations.js";
 import { renderInlineMarkdown } from "../lib/inline-markdown.js";
 
 const {
@@ -38,7 +39,12 @@ function formatVolumeIssue(volume, issue) {
 
 ---
 
-<section id={id} class="panel section-block publication-list" data-metric-scope-root={scope}>
+<section
+  id={id}
+  class="panel section-block publication-list"
+  data-metric-scope-root={scope}
+  data-citation-root={scope}
+>
   <div class="section-header">
     <div>
       {kicker || countMetric ? (
@@ -60,6 +66,8 @@ function formatVolumeIssue(volume, issue) {
     <div class={`publication-grid ${masonryGrid ? "publication-grid--masonry" : "publication-grid--stack"}`}>
       {items.map((item, index) => {
         const metricValues = buildMetricCardData(records[index], metrics);
+        const citationFormats = buildPublicationCitationFormats(item);
+        const citeTitle = item.title || "Untitled";
 
         return (
           <article
@@ -85,7 +93,18 @@ function formatVolumeIssue(volume, issue) {
               : [item.venue, item.pages, item.notes],
               )}
             </p>
-            <CardUrlLinks links={item.links} />
+            <div class="publication-card__actions">
+              <CardUrlLinks links={item.links} />
+              <button
+                type="button"
+                class="cite-button"
+                data-citation-open
+                data-citation-title={citeTitle}
+                data-citation-formats={JSON.stringify(citationFormats)}
+              >
+                Cite
+              </button>
+            </div>
           </article>
         );
       })}
@@ -95,7 +114,220 @@ function formatVolumeIssue(volume, issue) {
   )}
 
   {trailer && <span class="section-copy section-copy--trailer" set:html={renderInlineMarkdown(trailer)}></span>}
+
+  <dialog class="citation-modal" data-citation-modal>
+    <div class="citation-modal__panel">
+      <div class="citation-modal__header">
+        <div>
+          <p class="citation-modal__eyebrow">Citation</p>
+          <h3 data-citation-modal-title>Copy citation</h3>
+        </div>
+        <button type="button" class="citation-modal__close" data-citation-close aria-label="Close citation modal">
+          ×
+        </button>
+      </div>
+
+      <div class="citation-modal__formats" role="tablist" aria-label="Citation formats">
+        <button type="button" class="citation-format is-active" data-citation-format-button="apa">APA</button>
+        <button type="button" class="citation-format" data-citation-format-button="bibtex">BibTeX</button>
+        <button type="button" class="citation-format" data-citation-format-button="ris">RIS</button>
+        <button type="button" class="citation-format" data-citation-format-button="plain">Plain text</button>
+      </div>
+
+      <textarea class="citation-modal__text" data-citation-text readonly spellcheck="false"></textarea>
+
+      <div class="citation-modal__actions">
+        <button type="button" class="citation-copy" data-citation-copy>Copy</button>
+        <button type="button" class="citation-dismiss" data-citation-close>Close</button>
+      </div>
+    </div>
+  </dialog>
 </section>
+
+<script type="module">
+  const initPublicationCitations = () => {
+    document.querySelectorAll("[data-citation-root]").forEach((root) => {
+      if (root.dataset.citationInitialized === "true") return;
+
+      const modal = root.querySelector("[data-citation-modal]");
+      const modalTitle = root.querySelector("[data-citation-modal-title]");
+      const citationText = root.querySelector("[data-citation-text]");
+      const copyButton = root.querySelector("[data-citation-copy]");
+      const closeButtons = [...root.querySelectorAll("[data-citation-close]")];
+      const formatButtons = [...root.querySelectorAll("[data-citation-format-button]")];
+      const openButtons = [...root.querySelectorAll("[data-citation-open]")];
+      if (!modal || !modalTitle || !citationText || !copyButton || !formatButtons.length || !openButtons.length) return;
+
+      root.dataset.citationInitialized = "true";
+
+      const state = {
+        formats: {},
+        activeFormat: "apa",
+        activeTitle: "",
+        opener: null,
+      };
+
+      const getFocusableElements = () => [
+        ...formatButtons,
+        citationText,
+        copyButton,
+        ...closeButtons,
+      ].filter((element) => element && typeof element.focus === "function" && element.offsetParent !== null);
+
+      const getActiveFormatButton = () =>
+        formatButtons.find((button) => button.dataset.citationFormatButton === state.activeFormat) || formatButtons[0];
+
+      const focusActiveFormat = () => {
+        const button = getActiveFormatButton();
+        button?.focus?.();
+      };
+
+      const setActiveFormat = (format) => {
+        state.activeFormat = format in state.formats ? format : "apa";
+        citationText.value = state.formats[state.activeFormat] || "";
+        formatButtons.forEach((button) => {
+          const active = button.dataset.citationFormatButton === state.activeFormat;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
+          button.setAttribute("aria-selected", String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+      };
+
+      const openModal = (button) => {
+        const payload = button?.dataset?.citationFormats || "{}";
+        try {
+          state.formats = JSON.parse(payload);
+        } catch {
+          state.formats = {};
+        }
+
+        state.activeTitle = button?.dataset?.citationTitle || "Copy citation";
+        state.opener = button;
+        modalTitle.textContent = state.activeTitle;
+        setActiveFormat("apa");
+
+        if (typeof modal.showModal === "function") {
+          modal.showModal();
+        } else {
+          modal.setAttribute("open", "");
+        }
+
+        copyButton.textContent = "Copy";
+        citationText.setSelectionRange(0, citationText.value.length);
+        window.requestAnimationFrame(() => {
+          focusActiveFormat();
+        });
+      };
+
+      const closeModal = () => {
+        if (typeof modal.close === "function" && modal.open) {
+          modal.close();
+        } else {
+          modal.removeAttribute("open");
+        }
+
+        state.opener?.focus?.();
+      };
+
+      formatButtons.forEach((button) => {
+        button.setAttribute("role", "tab");
+        button.addEventListener("click", () => {
+          setActiveFormat(button.dataset.citationFormatButton || "apa");
+          citationText.setSelectionRange(0, citationText.value.length);
+        });
+        button.addEventListener("keydown", (event) => {
+          const index = formatButtons.indexOf(button);
+          if (index === -1) return;
+
+          const key = event.key;
+          const nextIndex =
+            key === "ArrowRight"
+              ? (index + 1) % formatButtons.length
+              : key === "ArrowLeft"
+                ? (index - 1 + formatButtons.length) % formatButtons.length
+                : key === "Home"
+                  ? 0
+                  : key === "End"
+                    ? formatButtons.length - 1
+                    : -1;
+
+          if (nextIndex === -1) return;
+
+          event.preventDefault();
+          const nextButton = formatButtons[nextIndex];
+          setActiveFormat(nextButton.dataset.citationFormatButton || "apa");
+          nextButton.focus();
+          citationText.setSelectionRange(0, citationText.value.length);
+        });
+      });
+
+      openButtons.forEach((button) => {
+        button.addEventListener("click", () => openModal(button));
+      });
+
+      copyButton.addEventListener("click", async () => {
+        const text = citationText.value || "";
+        try {
+          await navigator.clipboard.writeText(text);
+          copyButton.textContent = "Copied";
+        } catch {
+          citationText.focus();
+          citationText.select();
+          document.execCommand?.("copy");
+          copyButton.textContent = "Copied";
+        }
+        window.setTimeout(() => {
+          copyButton.textContent = "Copy";
+        }, 1200);
+      });
+
+      closeButtons.forEach((button) => {
+        button.addEventListener("click", closeModal);
+      });
+
+      modal.addEventListener("keydown", (event) => {
+        if (event.key !== "Tab") {
+          return;
+        }
+
+        const focusables = getFocusableElements();
+        if (!focusables.length) {
+          return;
+        }
+
+        const currentIndex = focusables.indexOf(document.activeElement);
+        if (currentIndex === -1) {
+          event.preventDefault();
+          focusables[0].focus();
+          return;
+        }
+
+        const nextIndex = event.shiftKey
+          ? (currentIndex - 1 + focusables.length) % focusables.length
+          : (currentIndex + 1) % focusables.length;
+
+        event.preventDefault();
+        focusables[nextIndex].focus();
+      });
+
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      modal.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeModal();
+      });
+    });
+  };
+
+  document.addEventListener("DOMContentLoaded", initPublicationCitations, { once: true });
+  document.addEventListener("astro:page-load", initPublicationCitations);
+  initPublicationCitations();
+</script>
 
 <style>
   .publication-list {
@@ -182,6 +414,176 @@ function formatVolumeIssue(volume, issue) {
     color: var(--muted);
   }
 
+  .publication-card__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .cite-button {
+    appearance: none;
+    border: 1px solid var(--nav-border);
+    background: var(--nav-chip);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .cite-button:hover,
+  .cite-button:focus-visible {
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--nav-border));
+    background: color-mix(in srgb, var(--accent-soft) 70%, var(--nav-chip));
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .citation-modal {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    max-width: min(760px, calc(100vw - 1.5rem));
+    width: 100%;
+  }
+
+  .citation-modal::backdrop {
+    background: rgba(3, 10, 20, 0.55);
+    backdrop-filter: blur(4px);
+  }
+
+  .citation-modal__panel {
+    border-radius: 28px;
+    border: 1px solid var(--nav-border);
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--accent-soft-strong) 42%, transparent), transparent 34%),
+      radial-gradient(circle at top left, color-mix(in srgb, var(--accent-soft) 32%, transparent), transparent 30%),
+      var(--nav-panel);
+    box-shadow: var(--nav-shadow);
+    padding: 1.1rem;
+    display: grid;
+    gap: 1rem;
+    backdrop-filter: blur(18px);
+    box-sizing: border-box;
+  }
+
+  .citation-modal__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .citation-modal__eyebrow {
+    margin: 0 0 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .citation-modal__header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .citation-modal__close {
+    appearance: none;
+    border: 1px solid var(--nav-border);
+    background: var(--nav-chip);
+    color: var(--text);
+    border-radius: 999px;
+    width: 2.1rem;
+    height: 2.1rem;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .citation-modal__close:hover,
+  .citation-modal__close:focus-visible {
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--nav-border));
+    background: color-mix(in srgb, var(--accent-soft) 55%, var(--nav-chip));
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .citation-modal__formats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .citation-format,
+  .citation-copy,
+  .citation-dismiss {
+    appearance: none;
+    border: 1px solid var(--nav-border);
+    border-radius: 999px;
+    background: var(--nav-chip);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.48rem 0.82rem;
+    cursor: pointer;
+    box-shadow: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .citation-format.is-active {
+    background: var(--accent-soft);
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--nav-border));
+  }
+
+  .citation-modal__text {
+    width: min(100%, 100%);
+    max-width: 100%;
+    min-height: 15rem;
+    resize: vertical;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--panel-strong);
+    color: var(--text);
+    padding: 0.95rem 1rem;
+    font: inherit;
+    line-height: 1.55;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent-soft) 18%, transparent);
+    box-sizing: border-box;
+    align-self: stretch;
+  }
+
+  .citation-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
   @media (max-width: 980px) {
     .section-header-aside {
       justify-items: start;
@@ -199,6 +601,20 @@ function formatVolumeIssue(volume, issue) {
   @media (max-width: 720px) {
     .publication-grid--masonry {
       grid-template-columns: 1fr;
+    }
+
+    .citation-modal {
+      max-width: calc(100vw - 1rem);
+    }
+
+    .citation-modal__panel {
+      padding: 0.9rem;
+      gap: 0.85rem;
+    }
+
+    .citation-modal__text {
+      min-height: 14rem;
+      padding: 0.85rem 0.9rem;
     }
   }
 </style>

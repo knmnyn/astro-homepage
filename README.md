@@ -366,6 +366,9 @@ The remaining sheets follow the same general pattern:
 
 - `publications`
   - bibliographic records with title, venue, authors, year, and link fields
+  - publication cards include a compact `Cite` button that opens a modal for APA, BibTeX, RIS, and plain-text copies
+  - if the sheet provides `URL`, `DOI`, or `Source URL`, those are folded into the generated citation text when relevant
+  - the citation modal opens with keyboard focus on the format tabs, supports Arrow Left/Right plus Home/End navigation, and traps Tab/Shift+Tab inside the panel until it is closed
 - `teaching`
   - course history with academic year, term, course code, role, section, and notes
 - `students`
@@ -444,6 +447,14 @@ To run a focused subset while iterating:
 ```sh
 node --test test/site-chrome.test.mjs test/sheet-metrics.test.mjs
 ```
+
+Test naming standard:
+
+- test files live in `test/`
+- file names use `kebab-case.test.mjs`
+- each file should cover one module or closely related feature area
+- test case names should describe the behavior being verified, not the implementation detail
+- new test files automatically run under `npm test` as long as they match the `.test.mjs` pattern
 
 Notes:
 
